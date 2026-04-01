@@ -120,7 +120,7 @@ class TransactionService {
     }
 
     /// [DELETE]: Delete Transaction
-    Future<void> delete(String id) async {
+    Future<void> deleteById(String id) async {
         try {
             await _sbdb.from('transactions')
                 .delete()
