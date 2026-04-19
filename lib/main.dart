@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:budgetfy/src/core/connection/supabase_config.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:budgetfy/src/features/account/account_screen.dart';
 
-void main() {
-    runApp(const BudgetfyApp());
+void main() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    await SupabaseConfig.init();
+    runApp(const ProviderScope(
+        child: BudgetfyApp()
+    ));
 }
 
 class BudgetfyApp extends StatelessWidget {
@@ -10,11 +17,7 @@ class BudgetfyApp extends StatelessWidget {
     @override
     Widget build(BuildContext context) {
         return const MaterialApp(
-            home: Scaffold(
-            body: Center(
-                child: Text('Hello World!'),
-            ),
-            ),
+            home: AccountScreen(), // <- swap this in
         );
     }
 }
