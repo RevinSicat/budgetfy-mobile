@@ -6,7 +6,7 @@ final categoryServiceProvider = Provider<CategoryService>((ref) {
     return CategoryService();
 });
 
-final categoryListProvider = FutureProvider<List<Category>>((ref) async {
+final getAllListProvider = FutureProvider<List<Category>>((ref) async {
     final service = ref.read(categoryServiceProvider);
     return service.getAllList();
 });
