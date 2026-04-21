@@ -5,7 +5,7 @@ class CategoryService {
     final _sbdb = SupabaseConfig.client;
 
     /// [GET]: Retreives Category List
-    Future<List<Category>> getCategoryList() async {
+    Future<List<Category>> getAllList() async {
         try {
             final response = await _sbdb.from('categories')
                 .select()
@@ -21,7 +21,7 @@ class CategoryService {
     }
 
     /// [POST]: Create Category
-    Future<void> createCategory(Category category) async {
+    Future<void> save(Category category) async {
         try {
             await _sbdb.from('categories')
                 .insert(category.toJson());
@@ -32,7 +32,7 @@ class CategoryService {
     }
 
     /// [PUT]: Update Category
-    Future<void> updateCategory(Category category) async {
+    Future<void> update(Category category) async {
         try {
             await _sbdb.from('categories')
                 .update(category.toJson())
@@ -44,7 +44,7 @@ class CategoryService {
     }
 
     /// [DELETE]: Delete Category
-    Future<void> deleteCategory(String id) async {
+    Future<void> deleteById(String id) async {
         try {
             await _sbdb.from('categories')
                 .delete()
