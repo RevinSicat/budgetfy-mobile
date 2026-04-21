@@ -8,7 +8,7 @@ class AccountScreen extends ConsumerWidget {
 
     @override
     Widget build(BuildContext context, WidgetRef ref) {
-        final accountList = ref.watch(accountListProvider);
+        final accountList = ref.watch(getAllListProvider);
         return Scaffold(
             appBar: AppBar(title: const Text('Accounts')),
             body: accountList.when(
