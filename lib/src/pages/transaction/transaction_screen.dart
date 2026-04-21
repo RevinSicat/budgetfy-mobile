@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../features/category/category.dart';
 import '../../features/transaction/transaction_provider.dart';
 import '../../common/utils/color_utility.dart';
 
@@ -9,7 +8,10 @@ class TransactionScreen extends ConsumerWidget {
 
     @override
     Widget build(BuildContext context, WidgetRef ref) {
-        final transactionList = ref.watch(transactionListProvider);
+        final transactionList = ref.watch(
+            getAllbyPaginationProvider(const TransactionFilter())
+        );
+
         return Scaffold(
             appBar: AppBar(title: const Text('Transactions')),
             body: transactionList.when(
@@ -24,15 +26,14 @@ class TransactionScreen extends ConsumerWidget {
                             ),
                             decoration: BoxDecoration(
                                 border: Border.all(
-                                    color: transaction.category?.color != null
+                                    color: transaction.category != null
                                         ? hexToColor(transaction.category!.color)
-                                        : (transaction.category?.type == CategoryType.income ? Colors.green : Colors.red),
+                                        : Colors.grey,
                                 ),
                             ),
                             child: ListTile(
                                 title: Text(
-                                    transaction.category?.name 
-                                    ?? (transaction.amount > 0 ? 'Uncategorized Income' : 'Uncategorized Expense'),
+                                    transaction.category?.name ?? 'Uncategorized',
                                 ),
                                 trailing: Text(transaction.amount.toStringAsFixed(2)),
                             ),
