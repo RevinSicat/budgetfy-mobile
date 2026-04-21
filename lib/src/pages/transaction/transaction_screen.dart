@@ -1,18 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../category/category.dart';
-import 'transaction_provider.dart';
+import '../../features/category/category.dart';
+import '../../features/transaction/transaction_provider.dart';
+import '../../common/utils/color_utility.dart';
 
 class TransactionScreen extends ConsumerWidget {
     const TransactionScreen({super.key});
-
-    Color hexToColor(String hex) {
-        hex = hex.replaceAll('#', '');
-        if (hex.length == 6) {
-            hex = 'FF$hex';
-        }
-        return Color(int.parse(hex, radix: 16));
-    }
 
     @override
     Widget build(BuildContext context, WidgetRef ref) {
