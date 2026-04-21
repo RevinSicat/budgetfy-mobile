@@ -5,7 +5,7 @@ class AccountService {
     final _sbdb = SupabaseConfig.client;
 
     /// [GET]: Retreives Account List
-    Future<List<Account>> getAccountList() async {
+    Future<List<Account>> getAllList() async {
         try {
             final response = await _sbdb.from('accounts')
                 .select()
@@ -21,7 +21,7 @@ class AccountService {
     }
 
     /// [POST]: Create Account 
-    Future<void> createAccount(Account account) async {
+    Future<void> save(Account account) async {
         try {
             await _sbdb.from('accounts')
                 .insert(account.toJson());
@@ -32,7 +32,7 @@ class AccountService {
     }
 
     /// [PUT]: Update Account
-    Future<void> updateAccount(Account account) async {
+    Future<void> update(Account account) async {
         try {
             await _sbdb.from('accounts')
                 .update(account.toJson())
@@ -44,7 +44,7 @@ class AccountService {
     }
 
     /// [DELETE]: Delete Account
-    Future<void> deleteAccount(String id) async {
+    Future<void> deleteById(String id) async {
         try {
             await _sbdb.from('accounts')
                 .delete()
