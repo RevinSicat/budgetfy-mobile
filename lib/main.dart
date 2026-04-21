@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:budgetfy/src/core/connection/supabase_config.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:budgetfy/src/features/account/account_screen.dart';
+import 'package:budgetfy/src/pages/account/account_screen.dart';
 
 void main() async {
     WidgetsFlutterBinding.ensureInitialized();

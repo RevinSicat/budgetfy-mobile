@@ -1,17 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'account_provider.dart';
+import '../../common/utils/color_utility.dart';
+import '../../features/account/account_provider.dart';
 
 class AccountScreen extends ConsumerWidget {
     const AccountScreen({super.key});
-
-    Color hexToColor(String hex) {
-        hex = hex.replaceAll('#', '');
-        if (hex.length == 6) {
-            hex = 'FF$hex';
-        }
-        return Color(int.parse(hex, radix: 16));
-    }
 
     @override
     Widget build(BuildContext context, WidgetRef ref) {
