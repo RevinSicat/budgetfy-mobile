@@ -26,7 +26,7 @@ final transactionServiceProvider = Provider<TransactionService>((ref) {
     return TransactionService();
 });
 
-final getAllbyPaginationProvider = FutureProvider.family<List<Transaction>, TransactionFilter>((ref, transactionFilter) async {
+final getAllTransactionByPaginationProvider = FutureProvider.family<List<Transaction>, TransactionFilter>((ref, transactionFilter) async {
     final service = ref.read(transactionServiceProvider);
     return service.getAllbyPagination(
         page: transactionFilter.page,
@@ -34,12 +34,12 @@ final getAllbyPaginationProvider = FutureProvider.family<List<Transaction>, Tran
     );
 });
 
-final getByIdProvider = FutureProvider.family<Transaction, String>((ref, id) async {
+final getTransactionByIdProvider = FutureProvider.family<Transaction, String>((ref, id) async {
     final service = ref.read(transactionServiceProvider);
     return service.getById(id);
 });
 
-final getBySpecificationProvider = FutureProvider.family<List<Transaction>, TransactionFilter>((ref, transactionFilter) async {
+final getTransactionBySpecificationProvider = FutureProvider.family<List<Transaction>, TransactionFilter>((ref, transactionFilter) async {
     final service = ref.read(transactionServiceProvider);
     return service.getBySpecification(
         accountId: transactionFilter.accountId,
@@ -52,7 +52,7 @@ final getBySpecificationProvider = FutureProvider.family<List<Transaction>, Tran
     );
 });
 
-final getTransactionAmmountByAccountIdProvider = FutureProvider.family<double, String>((ref, accountId) async {
+final getTotalTransactionAmmountByAccountIdProvider = FutureProvider.family<double, String>((ref, accountId) async {
     final service = ref.read(transactionServiceProvider);
     return service.getTransactionAmmountByAccountId(accountId);
 });

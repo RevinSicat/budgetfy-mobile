@@ -9,7 +9,7 @@ class TransactionScreen extends ConsumerWidget {
     @override
     Widget build(BuildContext context, WidgetRef ref) {
         final transactionList = ref.watch(
-            getAllbyPaginationProvider(const TransactionFilter())
+            getAllTransactionByPaginationProvider(const TransactionFilter())
         );
 
         return Scaffold(

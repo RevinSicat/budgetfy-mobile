@@ -9,7 +9,7 @@ class CategoryScreen extends ConsumerWidget {
 
     @override
     Widget build(BuildContext context, WidgetRef ref) {
-        final categoryList = ref.watch(getAllListProvider);
+        final categoryList = ref.watch(getAllCategoryListProvider);
         return Scaffold(
             appBar: AppBar(title: const Text('Categories')),
             body: categoryList.when(

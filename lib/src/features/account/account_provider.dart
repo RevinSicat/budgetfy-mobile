@@ -6,7 +6,7 @@ final accountServiceProvider = Provider<AccountService>((ref) {
     return AccountService();
 });
 
-final getAllListProvider = FutureProvider<List<Account>>((ref) async {
+final getAllAccountListProvider = FutureProvider<List<Account>>((ref) async {
     final service = ref.read(accountServiceProvider);
     return service.getAllList();
 });
