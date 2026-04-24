@@ -1,3 +1,4 @@
+import 'package:budgetfy/src/pages/dashboard/dashboard_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'transaction/transaction_screen.dart';
@@ -10,6 +11,7 @@ class AppShell extends ConsumerWidget {
     const AppShell({super.key});
 
     static const List<Widget> appScreens = [
+        DashboardScreen(),
         TransactionScreen(),
         AccountScreen(),
         CategoryScreen(),
@@ -20,18 +22,25 @@ class AppShell extends ConsumerWidget {
         final selectedIndex = ref.watch(selectedIndexProvider);
 
         return Scaffold(
-            body: appScreens[selectedIndex],
+            body: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                child: appScreens[selectedIndex],
+            ),
             bottomNavigationBar: BottomNavigationBar(
                 currentIndex: selectedIndex,
                 onTap: (index) => ref.read(selectedIndexProvider.notifier).state = index,
                 type: BottomNavigationBarType.fixed,
                 items: const [
                     BottomNavigationBarItem(
-                        icon: Icon(Icons.receipt_long),
+                        icon: Icon(Icons.data_usage),
+                        label: 'Dashboard',
+                    ),
+                    BottomNavigationBarItem(
+                        icon: Icon(Icons.payments),
                         label: 'Transactions',
                     ),
                     BottomNavigationBarItem(
-                        icon: Icon(Icons.account_balance_wallet),
+                        icon: Icon(Icons.wallet),
                         label: 'Accounts',
                     ),
                     BottomNavigationBarItem(

@@ -13,7 +13,14 @@ class TransactionScreen extends ConsumerWidget {
         );
 
         return Scaffold(
-            appBar: AppBar(title: const Text('Transactions')),
+            appBar: AppBar(title: const Text(
+                'Transactions',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                ),
+            )),
+            backgroundColor: const Color(0xFFF9F9F9),
             body: transactionList.when(
                 data: (transactions) => ListView.builder(
                     itemCount: transactions.length,

@@ -11,7 +11,14 @@ class CategoryScreen extends ConsumerWidget {
     Widget build(BuildContext context, WidgetRef ref) {
         final categoryList = ref.watch(getAllCategoryListProvider);
         return Scaffold(
-            appBar: AppBar(title: const Text('Categories')),
+            appBar: AppBar(title: const Text(
+                'Categories',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 24,
+                ),
+            )),
+            backgroundColor: const Color(0xFFF9F9F9),
             body: categoryList.when(
                 data: (categories) => ListView.builder(
                     itemCount: categories.length,
