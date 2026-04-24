@@ -13,6 +13,7 @@ class AddAccountCard extends StatelessWidget{
             onTap: onTap,
             child: Container(
                 width: 120,
+                height: 120,
                 margin: const EdgeInsets.only(right: 12),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -21,7 +22,15 @@ class AddAccountCard extends StatelessWidget{
                         color: Colors.grey, 
                         width: 2
                     ),
-                    borderRadius: BorderRadius.circular(12)
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                        BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            offset: const Offset(4, 4),
+                            blurRadius: 6,
+                            spreadRadius: 1,
+                        )
+                    ]
                 ),
                 child: const Column(
                     mainAxisSize: MainAxisSize.min,

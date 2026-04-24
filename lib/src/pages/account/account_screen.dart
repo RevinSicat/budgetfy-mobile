@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/account/account_provider.dart';
 import '../../common/widgets/account_card.dart';
+import '../../common/widgets/add_account_card.dart';
 
 class AccountScreen extends ConsumerWidget {
     const AccountScreen({super.key});
@@ -24,7 +25,12 @@ class AccountScreen extends ConsumerWidget {
                     child: Wrap(
                     spacing: 12, // horizontal spacing between cards
                     runSpacing: 12, // vertical spacing between rows
-                    children: accounts.map((acc) => AccountCard(account: acc)).toList(),
+                    children: [
+                        ...accounts.map((acc) => AccountCard(account: acc)),
+                        AddAccountCard(onTap: () {
+                            // TODO: Open Account Form
+                            })
+                        ]
                     ),
                 ),
                 loading: () => const Center(child: CircularProgressIndicator()),

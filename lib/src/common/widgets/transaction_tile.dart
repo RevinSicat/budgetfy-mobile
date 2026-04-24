@@ -40,10 +40,7 @@ class TransactionTile extends StatelessWidget {
                     radius: 6,
                 ),
                 title: Text(
-                    transaction.category?.name ?? 'Uncategorized',
-                    style: TextStyle(
-                        fontSize: 16,
-                    ),
+                    transaction.category?.name ?? 'Uncategorized'
                 ),
                 trailing: Text(
                     '${isIncome ? '+' : ''}${transaction.amount.toStringAsFixed(2)}',

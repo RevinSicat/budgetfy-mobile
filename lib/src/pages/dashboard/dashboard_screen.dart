@@ -28,7 +28,7 @@ class DashboardScreen extends ConsumerWidget{
                             ),
 
                             const Padding(
-                                padding: EdgeInsetsGeometry.symmetric(horizontal: 16),
+                                padding: EdgeInsets.symmetric(horizontal: 16),
                                 child: Text(
                                     'Accounts',
                                     style: TextStyle(
