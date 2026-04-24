@@ -28,7 +28,7 @@ class Account {
 
     /// [Converter]: Account Entity -> Json
     Map<String, dynamic> toJson() => {
-        'id': id,
+        if (id.isNotEmpty) 'id': id,
         'name': name,
         'color': color,
         'created_at': createdAt.toIso8601String(),

@@ -5,10 +5,23 @@ import '../../features/transaction/transaction_provider.dart';
 import '../../common/widgets/account_card.dart';
 import '../../common/widgets/transaction_tile.dart';
 import 'widgets/greeting_header.dart';
+import '../../features/account/account.dart';
 import '../../common/widgets/add_account_card.dart';
+import '../../common/widgets/account_form.dart';
 
 class DashboardScreen extends ConsumerWidget{
     const DashboardScreen({super.key});
+
+    void openAccountForm(BuildContext context, {Account? account}) {
+        showModalBottomSheet(
+            context: context,
+            isScrollControlled: true, // allows form to resize with keyboard
+            shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+            ),
+            builder: (_) => AccountForm(account: account),
+        );
+    }
 
     @override
     Widget build(BuildContext context, WidgetRef ref) {
@@ -47,9 +60,7 @@ class DashboardScreen extends ConsumerWidget{
                                         padding: const EdgeInsets.only(left: 16),
                                         children: [
                                             ...accounts.map((acc) => AccountCard(account: acc)),
-                                            AddAccountCard(onTap: () {
-                                                // TODO: Open Account Form
-                                            })
+                                            AddAccountCard(onTap: () => openAccountForm(context))
                                         ],
                                     ), 
                                     loading: () => const Center(child: CircularProgressIndicator()),
@@ -60,7 +71,7 @@ class DashboardScreen extends ConsumerWidget{
                             const SizedBox(height: 24),
                             
                             const Padding(
-                                padding: EdgeInsetsGeometry.symmetric(horizontal: 16),
+                                padding: const EdgeInsetsGeometry.symmetric(horizontal: 16),
                                 child: Text(
                                     'Transactions',
                                     style: TextStyle(
