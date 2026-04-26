@@ -1,0 +1,32 @@
+-- 1. Create Enums for Type Safety
+CREATE TYPE category_type AS ENUM ('income', 'expense');
+CREATE TYPE transaction_type AS ENUM ('Default', 'Upcoming', 'Subscription', 'Lent', 'Borrowed');
+
+-- 2. Create Accounts Table
+CREATE TABLE accounts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    color TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 3. Create Categories Table
+CREATE TABLE categories (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT NOT NULL,
+    color TEXT NOT NULL,
+    type category_type NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 4. Create Transactions Table
+CREATE TABLE transactions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    category_id UUID NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+    amount NUMERIC NOT NULL,
+    date TIMESTAMPTZ NOT NULL,
+    transaction_type transaction_type NOT NULL DEFAULT 'Default',
+    note TEXT DEFAULT '',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
