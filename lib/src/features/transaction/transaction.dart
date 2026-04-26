@@ -14,8 +14,6 @@ class Transaction {
     final DateTime date;
     final TransactionType transactionType;
     final String note;
-    final DateTime createdAt;
-    final DateTime updatedAt;
 
     /// [Constructor]:
     Transaction({
@@ -28,8 +26,6 @@ class Transaction {
         required this.date,
         required this.transactionType,
         required this.note,
-        required this.createdAt,
-        required this.updatedAt,
     });
 
     /// [Converter]: Json -> Transaction Entity
@@ -46,9 +42,7 @@ class Transaction {
                 (e) => e.name == json['transaction_type'],
                 orElse: () => TransactionType.Default,
             ),
-            note: json['note'] ?? '',
-            createdAt: DateTime.parse(json['created_at']),
-            updatedAt: DateTime.parse(json['updated_at']),
+            note: json['note'] ?? ''
         );
     }
 
@@ -62,8 +56,6 @@ class Transaction {
             'date': date.toIso8601String(),
             'transaction_type': transactionType.name,
             'note': note,
-            'created_at': createdAt.toIso8601String(),
-            'updated_at': updatedAt.toIso8601String(),
         };
     }
 }

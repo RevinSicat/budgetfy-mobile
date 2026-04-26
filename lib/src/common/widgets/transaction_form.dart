@@ -103,8 +103,6 @@ class TransactionFormState extends ConsumerState<TransactionForm> {
                     date: selectedDate, 
                     transactionType: selectedType, 
                     note: noteController.text.trim(), 
-                    createdAt: now, 
-                    updatedAt: now
                 ));
             } else {
                 await service.update(Transaction(
@@ -115,8 +113,6 @@ class TransactionFormState extends ConsumerState<TransactionForm> {
                     date: selectedDate, 
                     transactionType: selectedType, 
                     note: noteController.text.trim(), 
-                    createdAt: now, 
-                    updatedAt: now
                 )); 
             }
 

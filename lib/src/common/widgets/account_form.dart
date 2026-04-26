@@ -44,17 +44,13 @@ class AccountFormState extends ConsumerState<AccountForm> {
                 await service.save(Account(
                     id: '',
                     name: nameController.text.trim(),
-                    color: selectedColor,
-                    createdAt: now,
-                    updatedAt: now,
+                    color: selectedColor
                 ));
             } else {
                 await service.update(Account(
                     id: widget.account!.id,
                     name: nameController.text.trim(),
-                    color: selectedColor,
-                    createdAt: widget.account!.createdAt,
-                    updatedAt: now,
+                    color: selectedColor
                 ));
             }
 

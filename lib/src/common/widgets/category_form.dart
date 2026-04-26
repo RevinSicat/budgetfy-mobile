@@ -56,8 +56,7 @@ class CategoryFormState extends ConsumerState<CategoryForm> {
                         id: '', 
                         name: nameController.text.trim(), 
                         color: selectedColor, 
-                        type: selectedType, 
-                        createdAt: now
+                        type: selectedType
                     )
                 );
             } else {
@@ -66,8 +65,7 @@ class CategoryFormState extends ConsumerState<CategoryForm> {
                         id: widget.category!.id, 
                         name: nameController.text.trim(), 
                         color: selectedColor, 
-                        type: selectedType, 
-                        createdAt: widget.category!.createdAt
+                        type: selectedType
                     )
                 );
             }

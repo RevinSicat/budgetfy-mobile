@@ -6,15 +6,13 @@ class Category {
     final String name;
     final String color;
     final CategoryType type;
-    final DateTime createdAt;
 
     /// [Constructor]:
     Category({
         required this.id,
         required this.name,
         required this.color,
-        required this.type,
-        required this.createdAt
+        required this.type
     });
 
     /// [Converter]: Json -> Category Entity
@@ -26,8 +24,7 @@ class Category {
             type: CategoryType.values.firstWhere(
                 (e) => e.name == json['type'],
                 orElse: () => CategoryType.expense,
-            ),
-            createdAt: DateTime.parse(json['created_at'] as String)
+            )
         );
     }
 
@@ -36,7 +33,6 @@ class Category {
         if (id.isNotEmpty) 'id': id,
         'name': name,
         'color': color,
-        'type': type.name,
-        'created_at': createdAt.toIso8601String()
+        'type': type.name
     };
 }
