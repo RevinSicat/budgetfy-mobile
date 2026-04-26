@@ -60,7 +60,7 @@ class DashboardScreen extends ConsumerWidget{
                                         padding: const EdgeInsets.only(left: 16),
                                         children: [
                                             ...accounts.map((acc) => AccountCard(account: acc)),
-                                            AddAccountCard(onTap: () => openAccountForm(context))
+                                            AddAccountCard()
                                         ],
                                     ), 
                                     loading: () => const Center(child: CircularProgressIndicator()),
