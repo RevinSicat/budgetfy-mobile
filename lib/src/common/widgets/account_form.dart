@@ -7,10 +7,7 @@ import '../utils/color_utility.dart';
 
 class AccountForm extends ConsumerStatefulWidget {
     final Account? account;
-    const AccountForm({
-        super.key,
-        this.account
-    });
+    const AccountForm({super.key, this.account});
 
     @override
     ConsumerState<AccountForm> createState() => AccountFormState();
@@ -20,7 +17,7 @@ class AccountFormState extends ConsumerState<AccountForm> {
     final nameController = TextEditingController();
     String selectedColor = colorList[0];
     bool isLoading = false;
-    
+
     @override
     void initState() {
         super.initState();
@@ -37,53 +34,81 @@ class AccountFormState extends ConsumerState<AccountForm> {
     }
 
     Future<void> submit() async {
-        if (nameController.text.trim().isEmpty) {
-            return;
-        }
-
-        setState(() {
-            isLoading = true;
-        });
+        if (nameController.text.trim().isEmpty) return;
+        setState(() => isLoading = true);
 
         try {
             final service = ref.read(accountServiceProvider);
             final now = DateTime.now();
 
             if (widget.account == null) {
-                await service.save(
-                    Account(
-                        id: '', 
-                        name: nameController.text.trim(), 
-                        color: selectedColor, 
-                        createdAt: now, 
-                        updatedAt: now
-                    )
-                );
+                await service.save(Account(
+                    id: '',
+                    name: nameController.text.trim(),
+                    color: selectedColor,
+                    createdAt: now,
+                    updatedAt: now,
+                ));
             } else {
-                await service.update(
-                    Account(
-                        id: widget.account!.id, 
-                        name: nameController.text.trim(), 
-                        color: selectedColor, 
-                        createdAt: widget.account!.createdAt, 
-                        updatedAt: now
-                    )
-                );
+                await service.update(Account(
+                    id: widget.account!.id,
+                    name: nameController.text.trim(),
+                    color: selectedColor,
+                    createdAt: widget.account!.createdAt,
+                    updatedAt: now,
+                ));
             }
 
             ref.invalidate(getAllAccountListProvider);
-            if (mounted) {
-                Navigator.pop(context);
-            }
+            if (mounted) Navigator.pop(context);
         } catch (e) {
-            setState(() {
-                isLoading = false;
-                if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error: $e'))
-                    );
-                }
-            });
+            setState(() => isLoading = false);
+            if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: $e')),
+                );
+            }
+        }
+    }
+
+    Future<void> deleteAccount() async {
+        final confirm = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+                title: const Text('Delete Account'),
+                content: Text(
+                    'Are you sure you want to delete "${widget.account!.name}"? This cannot be undone.'
+                ),
+                actions: [
+                    TextButton(
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        style: TextButton.styleFrom(foregroundColor: Colors.red),
+                        child: const Text('Delete'),
+                    ),
+                ],
+            ),
+        );
+
+        if (confirm != true) return;
+
+        setState(() => isLoading = true);
+
+        try {
+            final service = ref.read(accountServiceProvider);
+            await service.deleteById(widget.account!.id);
+            ref.invalidate(getAllAccountListProvider);
+            if (mounted) Navigator.pop(context);
+        } catch (e) {
+            setState(() => isLoading = false);
+            if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error deleting account: $e')),
+                );
+            }
         }
     }
 
@@ -92,7 +117,6 @@ class AccountFormState extends ConsumerState<AccountForm> {
         final isEdit = widget.account != null;
 
         return Padding(
-            // Pushes form up when keyboard appears
             padding: EdgeInsets.only(
                 left: 16, right: 16, top: 24,
                 bottom: MediaQuery.of(context).viewInsets.bottom + 24,
@@ -101,13 +125,23 @@ class AccountFormState extends ConsumerState<AccountForm> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                    Text(
-                        isEdit ? 'Edit Account' : 'Add Account',
-                        style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                        ),
+                    Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                            Text(
+                                isEdit ? 'Edit Account' : 'Add Account',
+                                style: const TextStyle(
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                ),
+                            ),
+                            if (isEdit) IconButton(
+                                onPressed: isLoading ? null : deleteAccount,
+                                icon: const Icon(Icons.delete, color: Colors.red)
+                            ),
+                        ],
                     ),
+                    
                     const SizedBox(height: 16),
 
                     // Name field
@@ -126,6 +160,7 @@ class AccountFormState extends ConsumerState<AccountForm> {
                     const SizedBox(height: 8),
                     Wrap(
                         spacing: 8,
+                        runSpacing: 8,
                         children: colorList.map((color) {
                             final isSelected = color == selectedColor;
                             return GestureDetector(

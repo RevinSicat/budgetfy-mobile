@@ -23,13 +23,11 @@ class AccountScreen extends ConsumerWidget {
                 data: (accounts) => SingleChildScrollView(
                     padding: const EdgeInsets.all(16),
                     child: Wrap(
-                    spacing: 12, // horizontal spacing between cards
-                    runSpacing: 12, // vertical spacing between rows
-                    children: [
-                        ...accounts.map((acc) => AccountCard(account: acc)),
-                        AddAccountCard(onTap: () {
-                            // TODO: Open Account Form
-                            })
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: [
+                            ...accounts.map((acc) => AccountCard(account: acc)),
+                            AddAccountCard()
                         ]
                     ),
                 ),

@@ -1,16 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'account_form.dart';
 
-class AddAccountCard extends StatelessWidget{
-    final VoidCallback onTap;
-    const AddAccountCard({
-        super.key,
-        required this.onTap
-    });
+class AddAccountCard extends ConsumerWidget {
+    const AddAccountCard({super.key});
+
+    void openAccountForm(BuildContext context) {
+        showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+            ),
+            builder: (_) => const AccountForm(),
+        );
+    }
 
     @override
-    Widget build(BuildContext context) {
+    Widget build(BuildContext context, WidgetRef ref) {
         return GestureDetector(
-            onTap: onTap,
+            onTap: () => openAccountForm(context),
             child: Container(
                 width: 120,
                 height: 120,
@@ -18,10 +27,7 @@ class AddAccountCard extends StatelessWidget{
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                     color: Colors.white,
-                    border: Border.all(
-                        color: Colors.grey, 
-                        width: 2
-                    ),
+                    border: Border.all(color: Colors.grey, width: 2),
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                         BoxShadow(
@@ -30,21 +36,15 @@ class AddAccountCard extends StatelessWidget{
                             blurRadius: 6,
                             spreadRadius: 1,
                         )
-                    ]
+                    ],
                 ),
                 child: const Column(
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                        Icon(
-                            Icons.add,
-                            color: Colors.grey
-                        ),
+                        Icon(Icons.add, color: Colors.grey),
                         SizedBox(height: 8),
-                        Text(
-                            'Add Account',
-                            style: TextStyle(color: Colors.grey),
-                        )
+                        Text('Add Account', style: TextStyle(color: Colors.grey)),
                     ],
                 ),
             ),
