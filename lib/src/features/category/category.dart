@@ -33,7 +33,7 @@ class Category {
 
     /// [Converter]: Category Entity -> Json
     Map<String, dynamic> toJson() => {
-        'id': id,
+        if (id.isNotEmpty) 'id': id,
         'name': name,
         'color': color,
         'type': type.name,
