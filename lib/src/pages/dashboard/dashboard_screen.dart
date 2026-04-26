@@ -8,6 +8,7 @@ import 'widgets/greeting_header.dart';
 import '../../features/account/account.dart';
 import '../../common/widgets/add_account_card.dart';
 import '../../common/widgets/account_form.dart';
+import '../../common/widgets/transaction_form.dart';
 
 class DashboardScreen extends ConsumerWidget{
     const DashboardScreen({super.key});
@@ -95,7 +96,14 @@ class DashboardScreen extends ConsumerWidget{
             ),
             floatingActionButton: FloatingActionButton(
                 onPressed: () {
-                    // TODO: Open Transaction Form
+                    showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                        ),
+                        builder: (_) => const TransactionForm(),
+                    );
                 },
                 child: const Icon(Icons.add),
             ),

@@ -1,7 +1,7 @@
 import '../account/account.dart';
 import '../category/category.dart';
 
-enum TransactionType { defaultType, upcoming, subscription, lent, borrowed }
+enum TransactionType { Default, Upcoming, Subscription, Lent, Borrowed }
 
 class Transaction {
     /// [Fields]:
@@ -44,7 +44,7 @@ class Transaction {
             date: DateTime.parse(json['date']),
             transactionType: TransactionType.values.firstWhere(
                 (e) => e.name == json['transaction_type'],
-                orElse: () => TransactionType.defaultType,
+                orElse: () => TransactionType.Default,
             ),
             note: json['note'] ?? '',
             createdAt: DateTime.parse(json['created_at']),
@@ -55,15 +55,15 @@ class Transaction {
     /// [Converter]: Transaction Entity -> Json
     Map<String, dynamic> toJson() {
         return {
-        'id': id,
-        'account_id': accountId,
-        'category_id': categoryId,
-        'amount': amount,
-        'date': date.toIso8601String(),
-        'transaction_type': transactionType.name,
-        'note': note,
-        'created_at': createdAt.toIso8601String(),
-        'updated_at': updatedAt.toIso8601String(),
+            if (id.isNotEmpty) 'id': id,
+            'account_id': accountId,
+            'category_id': categoryId,
+            'amount': amount,
+            'date': date.toIso8601String(),
+            'transaction_type': transactionType.name,
+            'note': note,
+            'created_at': createdAt.toIso8601String(),
+            'updated_at': updatedAt.toIso8601String(),
         };
     }
 }
