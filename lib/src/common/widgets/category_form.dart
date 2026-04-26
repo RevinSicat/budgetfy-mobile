@@ -48,7 +48,6 @@ class CategoryFormState extends ConsumerState<CategoryForm> {
 
         try {
             final service = ref.read(categoryServiceProvider);
-            final now = DateTime.now();
 
             if (widget.category == null) {
                 await service.save(

@@ -38,7 +38,6 @@ class AccountFormState extends ConsumerState<AccountForm> {
 
         try {
             final service = ref.read(accountServiceProvider);
-            final now = DateTime.now();
 
             if (widget.account == null) {
                 await service.save(Account(

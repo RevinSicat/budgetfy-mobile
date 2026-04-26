@@ -91,7 +91,6 @@ class TransactionFormState extends ConsumerState<TransactionForm> {
 
         try {
             final service = ref.read(transactionServiceProvider);
-            final now = DateTime.now();
             final amount = double.parse(amountController.text.trim());
 
             if (widget.transaction == null) {
