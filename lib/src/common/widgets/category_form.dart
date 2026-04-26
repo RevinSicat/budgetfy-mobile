@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../src/features/category/category.dart';
-import '../../../src/features/category/category_provider.dart';
+import '../../features/category/category.dart';
+import '../../features/category/category_provider.dart';
 import '../utils/color_utility.dart';
 
 class CategoryForm extends ConsumerStatefulWidget {

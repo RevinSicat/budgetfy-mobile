@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../../src/features/transaction/transaction.dart';
-import '../../../src/features/category/category.dart';
+import '../../features/transaction/transaction.dart';
+import '../../features/category/category.dart';
 import '../../common/utils/color_utility.dart';
 
 class TransactionTile extends StatelessWidget {

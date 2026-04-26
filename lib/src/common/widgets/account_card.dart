@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../src/features/account/account.dart';
-import '../../../src/features/transaction/transaction_provider.dart';
+import '../../features/account/account.dart';
+import '../../features/transaction/transaction_provider.dart';
 import '../../common/utils/color_utility.dart';
 
 class AccountCard extends ConsumerWidget {
