@@ -37,7 +37,9 @@ class TransactionFormState extends ConsumerState<TransactionForm> {
         super.initState();
         if (widget.transaction != null) {
             final trn = widget.transaction!;
-            amountController.text = trn.amount.toString();
+            amountController.text = trn.amount < 0 
+                    ? (trn.amount * -1).toString()
+                    : trn.amount.toString();
             noteController.text = trn.note;
             selectedType = trn.transactionType;
             selectedDate = trn.date;
@@ -98,7 +100,9 @@ class TransactionFormState extends ConsumerState<TransactionForm> {
                     id: '', 
                     accountId: selectedAccount!.id, 
                     categoryId: selectedCategory!.id, 
-                    amount: selectedCategory!.type == CategoryType.income ? amount : amount * -1, 
+                    amount: selectedCategory!.type == CategoryType.income 
+                            ? amount 
+                            : amount * -1, 
                     date: selectedDate, 
                     transactionType: selectedType, 
                     note: noteController.text.trim(), 
@@ -108,7 +112,9 @@ class TransactionFormState extends ConsumerState<TransactionForm> {
                     id: widget.transaction!.id, 
                     accountId: selectedAccount!.id, 
                     categoryId: selectedCategory!.id, 
-                    amount: selectedCategory!.type == CategoryType.income ? amount : amount * -1, 
+                    amount: selectedCategory!.type == CategoryType.income 
+                            ? amount 
+                            : amount * -1, 
                     date: selectedDate, 
                     transactionType: selectedType, 
                     note: noteController.text.trim(), 
@@ -193,8 +199,6 @@ class TransactionFormState extends ConsumerState<TransactionForm> {
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (e, _) => Center(child: Text('Error: $e')),
                 data: (categories) {
-                    // Prefill account and category on edit — done here since
-                    // we need the loaded lists to match by id
                     if (isEdit && selectedAccount == null) {
                         selectedAccount = accounts.firstWhere(
                             (a) => a.id == widget.transaction!.accountId,
