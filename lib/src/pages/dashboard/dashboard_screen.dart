@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/account/account_provider.dart';
 import '../../features/transaction/transaction_provider.dart';
 import '../../common/widgets/account_card.dart';
-import '../../common/widgets/transaction_tile.dart';
+import '../../common/widgets/transaction_tile_group_section.dart';
 import 'widgets/greeting_header.dart';
 import '../../features/account/account.dart';
 import '../../common/widgets/add_account_card.dart';
@@ -16,7 +16,7 @@ class DashboardScreen extends ConsumerWidget{
     void openAccountForm(BuildContext context, {Account? account}) {
         showModalBottomSheet(
             context: context,
-            isScrollControlled: true, // allows form to resize with keyboard
+            isScrollControlled: true,
             shape: const RoundedRectangleBorder(
                 borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
             ),
@@ -28,6 +28,7 @@ class DashboardScreen extends ConsumerWidget{
     Widget build(BuildContext context, WidgetRef ref) {
         final accountList = ref.watch(getAllAccountListProvider);
         final transactionList = ref.watch(getAllTransactionByPaginationProvider(const TransactionFilter()));
+        final transactionListGrouped = ref.watch(getAllTransactionGroupedByDateByPaginationProvider(const TransactionFilter()));
 
         return Scaffold(
             backgroundColor: const Color(0xFFF9F9F9),
@@ -36,11 +37,12 @@ class DashboardScreen extends ConsumerWidget{
                     child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                            // Greetings Header
                             const Padding(
                                 padding: EdgeInsets.all(16), 
                                 child: GreetingHeader()
                             ),
-
+                            // Accounts Header
                             const Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 16),
                                 child: Text(
@@ -51,7 +53,7 @@ class DashboardScreen extends ConsumerWidget{
                                     ),
                                 )
                             ),
-
+                            // Account Card List
                             const SizedBox(height: 8),
                             SizedBox(
                                 height: 120,
@@ -68,9 +70,8 @@ class DashboardScreen extends ConsumerWidget{
                                     error: (e, _) => Center(child: Text('Error: $e'))
                                 ),
                             ),
-
+                            // Transactions Header
                             const SizedBox(height: 24),
-                            
                             const Padding(
                                 padding: const EdgeInsetsGeometry.symmetric(horizontal: 16),
                                 child: Text(
@@ -81,12 +82,24 @@ class DashboardScreen extends ConsumerWidget{
                                     ),
                                 )
                             ),
-
+                            // Transaction Tile List
                             const SizedBox(height: 8),
                             transactionList.when(
-                                data: (transaction) => Column(
-                                    children: transaction.map((trn) => TransactionTile(transaction: trn)).toList()
-                                ), 
+                                data: (_) {
+                                    if (transactionListGrouped.isEmpty) {
+                                        return const Center(
+                                            child: Text("No Transactions Found"),
+                                        );
+                                    }
+                                    return Column(
+                                        children: transactionListGrouped.entries.map((entry) {
+                                            return TransactionGroupSection(
+                                                date: entry.key, 
+                                                transactions: entry.value
+                                            );
+                                        }).toList()
+                                    );
+                                },
                                 loading: () => const Center(child: CircularProgressIndicator()),
                                 error: (e, _) => Center(child: Text('Error: $e'))
                             )
