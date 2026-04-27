@@ -3,6 +3,7 @@ import '../../features/transaction/transaction.dart';
 import '../../features/category/category.dart';
 import '../../common/utils/color_utility.dart';
 import '../../common/widgets/transaction_form.dart';
+import '../../common/widgets/tool_tip.dart';
 
 class TransactionTile extends StatelessWidget {
     final Transaction transaction;
@@ -13,7 +14,6 @@ class TransactionTile extends StatelessWidget {
 
     @override
     Widget build(BuildContext context) {
-        // Handle colors safely with fallbacks
         final categoryColor = transaction.category != null 
             ? hexToColor(transaction.category!.color)
             : Colors.grey;
@@ -23,6 +23,7 @@ class TransactionTile extends StatelessWidget {
             : Colors.grey;
 
         final isIncome = transaction.category?.type == CategoryType.income;
+        final iconKey = GlobalKey();
 
         return GestureDetector(
             onTap: () {
@@ -51,7 +52,7 @@ class TransactionTile extends StatelessWidget {
                     ]
                 ),
                 child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center, // Vertically centers the trailing amount
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                         // Left Side: 2 Rows wrapped in Expanded
                         Expanded(
@@ -113,9 +114,24 @@ class TransactionTile extends StatelessWidget {
                                 ],
                             ),
                         ),
-                        
+                        if (transaction.note.isNotEmpty) ...[
+                            GestureDetector(
+                                key: iconKey,
+                                onTap: () {
+                                    final preview = transaction.note.length > 50
+                                            ? '${transaction.note.substring(0, 50)}...'
+                                            : transaction.note;
+                                    showToolTip(context, preview, iconKey);
+                                },
+                                child: Icon(
+                                    Icons.article,
+                                    size: 18,
+                                    color: Colors.grey.shade600
+                                )
+                            ),
+                            const SizedBox(width: 8),
+                        ],
                         const SizedBox(width: 12),
-                        
                         // Right Side: Amount
                         Text(
                             '${isIncome ? '+' : ''}${transaction.amount.toStringAsFixed(2)}',
