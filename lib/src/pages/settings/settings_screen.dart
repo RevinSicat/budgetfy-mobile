@@ -46,7 +46,13 @@ class SettingsScreen extends ConsumerWidget {
                                 : null,
                             onTap: () => ref.read(themeProvider.notifier).setTheme(mode)
                         );
-                    })
+                    }),
+                    const SizedBox(height: 8),
+                    Text(
+                        'Budgetfy v.1.1\n1b3971d',
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodySmall
+                    )
                 ]
             )
         );
