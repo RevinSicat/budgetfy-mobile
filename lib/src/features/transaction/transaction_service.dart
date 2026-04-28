@@ -119,6 +119,29 @@ class TransactionService {
         }
     }
 
+    /// [PUT]: Update Transaction Amount By Category
+    Future<void> updateTransactionsAmountByCategory(String categoryId) async {
+        try {
+            final response = await _sbdb
+                .from('transactions')
+                .select('id, amount')
+                .eq('category_id', categoryId);
+
+            final transactions = response as List;
+            if (transactions.isEmpty) return;
+            for (var row in transactions) {
+                final double currentAmount = (row['amount'] as num).toDouble();
+                await _sbdb
+                    .from('transactions')
+                    .update({'amount': currentAmount * -1})
+                    .eq('id', row['id']);
+            }
+        } catch (e) {
+            print('[Error inverting transaction amounts]: $e');
+            rethrow;
+        }
+    }
+
     /// [DELETE]: Delete Transaction
     Future<void> deleteById(String id) async {
         try {

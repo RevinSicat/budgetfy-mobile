@@ -1,4 +1,5 @@
 import '../../core/connection/supabase_config.dart';
+import '../transaction/transaction_service.dart';
 import '../category/category.dart';
 
 class CategoryService {
@@ -34,9 +35,23 @@ class CategoryService {
     /// [PUT]: Update Category
     Future<void> update(Category category) async {
         try {
-            await _sbdb.from('categories')
+            final prevCategory = await _sbdb
+                .from('categories')
+                .select('type')
+                .eq('id', category.id)
+                .single();
+            
+            final prevCategoryType = prevCategory['type'] as String;
+            final bool isTypeChanged = prevCategoryType != category.type.name;
+
+            await _sbdb
+                .from('categories')
                 .update(category.toJson())
                 .eq('id', category.id);
+
+            if (isTypeChanged) {
+                await TransactionService().updateTransactionsAmountByCategory(category.id);
+            }
         } catch (e) {
             print('[Error updating category]: $e');
             rethrow;

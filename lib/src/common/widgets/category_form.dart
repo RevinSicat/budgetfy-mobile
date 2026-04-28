@@ -1,3 +1,5 @@
+import 'package:budgetfy/src/features/account/account_provider.dart';
+import 'package:budgetfy/src/features/transaction/transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/category/category.dart';
@@ -70,8 +72,10 @@ class CategoryFormState extends ConsumerState<CategoryForm> {
                     )
                 );
             }
-
             ref.invalidate(getAllCategoryListProvider);
+            ref.invalidate(getAllTransactionByPaginationProvider);
+            ref.invalidate(getTotalTransactionAmmountByAccountIdProvider);
+            ref.invalidate(getAllAccountListProvider);
             if (mounted) {
                 Navigator.pop(context);
             }
