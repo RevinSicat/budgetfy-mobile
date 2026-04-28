@@ -1,5 +1,7 @@
+import 'package:budgetfy/src/core/connection/supabase_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:restart_app/restart_app.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/theme_provider.dart';
 
@@ -47,6 +49,45 @@ class SettingsScreen extends ConsumerWidget {
                             onTap: () => ref.read(themeProvider.notifier).setTheme(mode)
                         );
                     }),
+                    const SizedBox(height: 8),
+                    Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                        child: Text(
+                            'Configuration',
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: theme.colorScheme.primary
+                            )
+                        )
+                    ),
+                    ListTile(
+                        leading: const Icon(Icons.link_off, color: Colors.red),
+                        title: const Text('Reset Supabase Config'),
+                        subtitle: const Text('Reconnect to a different Supabase database'),
+                        onTap: () async {
+                            final confirm = await showDialog<bool>(
+                                context: context,
+                                builder: (ctx) => AlertDialog(
+                                    title: const Text('Reset Supabase Config?'),
+                                    content: const Text('This will disconnect the app. You will need to re-enter your Supabase credentials.'),
+                                    actions: [
+                                        TextButton(
+                                            onPressed: () => Navigator.pop(ctx, false),
+                                            child: const Text('Cancel')
+                                        ),
+                                        TextButton(
+                                            onPressed: () => Navigator.pop(ctx, true),
+                                            style: TextButton.styleFrom(foregroundColor: Colors.red),
+                                            child: const Text('Reset')
+                                        )
+                                    ]
+                                )
+                            );
+                            if (confirm != true) return;
+                            await SupabaseConfig.clearConfig();
+                            Restart.restartApp();
+                        }
+                    ),
                     const SizedBox(height: 8),
                     Text(
                         'Budgetfy v.1.1\n1b3971d',
