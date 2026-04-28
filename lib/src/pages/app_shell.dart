@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'transaction/transaction_screen.dart';
 import 'account/account_screen.dart';
 import 'category/category_screen.dart';
+import 'settings/settings_screen.dart';
 
 final selectedIndexProvider = StateProvider<int>((ref) => 0);
 
@@ -15,6 +16,7 @@ class AppShell extends ConsumerWidget {
         TransactionScreen(),
         AccountScreen(),
         CategoryScreen(),
+        SettingsScreen()
     ];
 
     @override
@@ -46,6 +48,10 @@ class AppShell extends ConsumerWidget {
                     BottomNavigationBarItem(
                         icon: Icon(Icons.category),
                         label: 'Categories',
+                    ),
+                    BottomNavigationBarItem(
+                        icon: Icon(Icons.settings),
+                        label: 'Settings',
                     )
                 ]
             )

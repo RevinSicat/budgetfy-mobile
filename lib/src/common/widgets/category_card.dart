@@ -21,12 +21,14 @@ class CategoryCard extends ConsumerWidget {
 
     @override
     Widget build(BuildContext context, WidgetRef ref) {
+        final theme = Theme.of(context);
+
         return GestureDetector(
             onTap: () => openEditForm(context),
             child: Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: theme.cardTheme.color,
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                         BoxShadow(

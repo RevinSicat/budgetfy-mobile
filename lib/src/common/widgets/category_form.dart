@@ -132,6 +132,7 @@ class CategoryFormState extends ConsumerState<CategoryForm> {
 
     @override
     Widget build(BuildContext context) {
+        final theme = Theme.of(context);
         final isEdit = widget.category != null;
 
         return Padding(
@@ -148,10 +149,7 @@ class CategoryFormState extends ConsumerState<CategoryForm> {
                         children: [
                             Text(
                                 isEdit ? 'Edit Category' : 'Add Category',
-                                style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                ),
+                                style: theme.textTheme.titleLarge
                             ),
                             if (isEdit) IconButton(
                                 onPressed: isLoading ? null : deleteCategory, 
@@ -201,9 +199,9 @@ class CategoryFormState extends ConsumerState<CategoryForm> {
                     const SizedBox(height: 16),
 
                     // Color picker
-                    const Text(
+                    Text(
                         'Color',
-                        style: TextStyle(fontWeight: FontWeight.w500),
+                        style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     Wrap(
@@ -220,10 +218,13 @@ class CategoryFormState extends ConsumerState<CategoryForm> {
                                         color: hexToColor(color),
                                         shape: BoxShape.circle,
                                         border: isSelected
-                                            ? Border.all(color: Colors.black, width: 3)
-                                            : null,
-                                    ),
-                                ),
+                                                ? Border.all(
+                                                    color: theme.brightness == Brightness.light ? Colors.black : Colors.white, 
+                                                    width: 3
+                                                )
+                                                : null
+                                    )
+                                )
                             );
                         }).toList(),
                     ),

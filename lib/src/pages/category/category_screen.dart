@@ -9,16 +9,18 @@ class CategoryScreen extends ConsumerWidget {
 
     @override
     Widget build(BuildContext context, WidgetRef ref) {
+        final theme = Theme.of(context);
         final categoryList = ref.watch(getAllCategoryListProvider);
 
         return Scaffold(
             appBar: AppBar(
-                title: const Text(
+                title: Text(
                     'Categories',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
-                ),
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold
+                    )
+                )
             ),
-            backgroundColor: const Color(0xFFF9F9F9),
             body: categoryList.when(
                 data: (categories) => SingleChildScrollView(
                     padding: const EdgeInsets.all(12),

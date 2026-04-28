@@ -29,6 +29,7 @@ class AccountCard extends ConsumerWidget {
     Widget build(BuildContext context, WidgetRef ref) {
         final balance = ref.watch(getTotalTransactionAmmountByAccountIdProvider(account.id));
         final uuidLast4 = account.id.substring(account.id.length - 4);
+        final theme = Theme.of(context);
 
         return GestureDetector(
             onTap: () => openEditForm(context),
@@ -57,9 +58,8 @@ class AccountCard extends ConsumerWidget {
                             children: [
                                 Text(
                                     account.name,
-                                    style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFFF9F9F9),
+                                    style: theme.textTheme.titleLarge?.copyWith(
+                                        color: Colors.white, // Overriding to white for contrast against account color
                                         fontSize: 16,
                                     ),
                                 ),
@@ -81,11 +81,10 @@ class AccountCard extends ConsumerWidget {
                                 balance.when(
                                     data: (amount) => Text(
                                         amount.toStringAsFixed(2),
-                                        style: const TextStyle(
-                                            color: Color(0xFFF9F9F9),
-                                            fontWeight: FontWeight.bold,
+                                        style: theme.textTheme.titleLarge?.copyWith(
+                                            color: Colors.white,
                                             fontSize: 20,
-                                        ),
+                                        )
                                     ),
                                     loading: () => const SizedBox(
                                         height: 16, width: 16,
@@ -98,11 +97,7 @@ class AccountCard extends ConsumerWidget {
                         const Spacer(),
                         Text(
                             '**** **** **** $uuidLast4',
-                            style: const TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: Color(0xFFF9F9F9),
-                            ),
+                            style: theme.textTheme.labelSmall?.copyWith(color: Colors.white70),
                         ),
                     ],
                 ),

@@ -9,16 +9,16 @@ class AccountScreen extends ConsumerWidget {
 
     @override
     Widget build(BuildContext context, WidgetRef ref) {
+        final theme = Theme.of(context);
         final accountList = ref.watch(getAllAccountListProvider);
+
         return Scaffold(
-            appBar: AppBar(title: const Text(
+            appBar: AppBar(title: Text(
                 'Accounts',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 24,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold
                 )
             )),
-            backgroundColor: const Color(0xFFF9F9F9),
             body: accountList.when(
                 data: (accounts) => SingleChildScrollView(
                     padding: const EdgeInsets.all(16),

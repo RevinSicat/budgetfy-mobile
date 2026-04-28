@@ -8,18 +8,17 @@ class TransactionScreen extends ConsumerWidget {
 
     @override
     Widget build(BuildContext context, WidgetRef ref) {
+        final theme = Theme.of(context);
         final transactionList = ref.watch(getAllTransactionByPaginationProvider(const TransactionFilter()));
         final transactionListGrouped = ref.watch(getAllTransactionGroupedByDateByPaginationProvider(const TransactionFilter()));
 
         return Scaffold(
-            appBar: AppBar(title: const Text(
+            appBar: AppBar(title: Text(
                 'Transactions',
-                style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 24,
-                ),
+                style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold
+                )
             )),
-            backgroundColor: const Color(0xFFF9F9F9),
             body: transactionList.when(
                 data: (_) {
                     final entries = transactionListGrouped.entries.toList();

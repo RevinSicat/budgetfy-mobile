@@ -108,6 +108,7 @@ class AccountFormState extends ConsumerState<AccountForm> {
 
     @override
     Widget build(BuildContext context) {
+        final theme = Theme.of(context);
         final isEdit = widget.account != null;
 
         return Padding(
@@ -124,10 +125,7 @@ class AccountFormState extends ConsumerState<AccountForm> {
                         children: [
                             Text(
                                 isEdit ? 'Edit Account' : 'Add Account',
-                                style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                ),
+                                style: theme.textTheme.titleLarge
                             ),
                             if (isEdit) IconButton(
                                 onPressed: isLoading ? null : deleteAccount,
@@ -150,7 +148,10 @@ class AccountFormState extends ConsumerState<AccountForm> {
                     const SizedBox(height: 16),
 
                     // Color picker
-                    const Text('Color', style: TextStyle(fontWeight: FontWeight.w500)),
+                    Text(
+                        'Color', 
+                        style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)
+                    ),
                     const SizedBox(height: 8),
                     Wrap(
                         spacing: 8,
@@ -166,7 +167,10 @@ class AccountFormState extends ConsumerState<AccountForm> {
                                         color: hexToColor(color),
                                         shape: BoxShape.circle,
                                         border: isSelected
-                                            ? Border.all(color: Colors.black, width: 3)
+                                            ? Border.all(
+                                                color: theme.brightness == Brightness.light ? Colors.black : Colors.white, 
+                                                width: 3
+                                            )
                                             : null,
                                     ),
                                 ),

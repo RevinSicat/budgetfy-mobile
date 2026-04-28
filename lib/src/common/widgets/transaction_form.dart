@@ -10,7 +10,6 @@ import '../../features/account/account.dart';
 import '../../features/category/category.dart';
 import '../utils/dropdown_item.dart';
 
-
 class TransactionForm extends ConsumerStatefulWidget {
     final Transaction? transaction;
     const TransactionForm({
@@ -94,61 +93,41 @@ class TransactionFormState extends ConsumerState<TransactionForm> {
         try {
             final service = ref.read(transactionServiceProvider);
             final amount = double.parse(amountController.text.trim());
+            final finalAmount = selectedCategory!.type == CategoryType.income ? amount : amount * -1;
+
+            final transactionData = Transaction(
+                id: widget.transaction?.id ?? '', 
+                accountId: selectedAccount!.id, 
+                categoryId: selectedCategory!.id, 
+                amount: finalAmount, 
+                date: selectedDate, 
+                transactionType: selectedType, 
+                note: noteController.text.trim(), 
+            );
 
             if (widget.transaction == null) {
-                await service.save(Transaction(
-                    id: '', 
-                    accountId: selectedAccount!.id, 
-                    categoryId: selectedCategory!.id, 
-                    amount: selectedCategory!.type == CategoryType.income 
-                            ? amount 
-                            : amount * -1, 
-                    date: selectedDate, 
-                    transactionType: selectedType, 
-                    note: noteController.text.trim(), 
-                ));
+                await service.save(transactionData);
             } else {
-                await service.update(Transaction(
-                    id: widget.transaction!.id, 
-                    accountId: selectedAccount!.id, 
-                    categoryId: selectedCategory!.id, 
-                    amount: selectedCategory!.type == CategoryType.income 
-                            ? amount 
-                            : amount * -1, 
-                    date: selectedDate, 
-                    transactionType: selectedType, 
-                    note: noteController.text.trim(), 
-                )); 
+                await service.update(transactionData);
             }
 
             ref.invalidate(getAllTransactionByPaginationProvider);
             ref.invalidate(getTotalTransactionAmmountByAccountIdProvider);
-            if (mounted) {
-                Navigator.pop(context);
-            }
+            if (mounted) Navigator.pop(context);
         } catch (e) {
-            setState(() {
-                isLoading = false;
-            });
-            if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error $e'))
-                );
-            }
+            setState(() => isLoading = false);
+            if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
         }
     }
 
     Future<void> deleteTransaction() async {
-        final confirm = await showDialog(
+        final confirm = await showDialog<bool>(
             context: context, 
             builder: (ctx) => AlertDialog(
                 title: const Text('Delete Transaction'),
-                content: const Text('Are you sure? this cannot be undone.'),
+                content: const Text('Are you sure? This cannot be undone.'),
                 actions: [
-                    TextButton(
-                        onPressed: () => Navigator.pop(ctx, false), 
-                        child: const Text('Cancel')
-                    ),
+                    TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
                     TextButton(
                         onPressed: () => Navigator.pop(ctx, true), 
                         style: TextButton.styleFrom(foregroundColor: Colors.red),
@@ -158,36 +137,23 @@ class TransactionFormState extends ConsumerState<TransactionForm> {
             )
         );
 
-        if (confirm != true) {
-            return;
-        }
+        if (confirm != true) return;
 
-        setState(() {
-            isLoading = true;
-        });
-
+        setState(() => isLoading = true);
         try {
-            final service = ref.read(transactionServiceProvider);
-            await service.deleteById(widget.transaction!.id);
+            await ref.read(transactionServiceProvider).deleteById(widget.transaction!.id);
             ref.invalidate(getAllTransactionByPaginationProvider);
             ref.invalidate(getTotalTransactionAmmountByAccountIdProvider);
-            if (mounted) {
-                Navigator.pop(context);
-            }
+            if (mounted) Navigator.pop(context);
         } catch (e) {
-            setState(() {
-                isLoading = false;
-            });
-            if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error deleting: $e'))
-                );
-            }
+            setState(() => isLoading = false);
+            if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
         }
     }
 
     @override
     Widget build(BuildContext context) {
+        final theme = Theme.of(context); // Access AppTheme
         final accountList = ref.watch(getAllAccountListProvider);
         final categoryList = ref.watch(getAllCategoryListProvider);
         final isEdit = widget.transaction != null;
@@ -200,16 +166,10 @@ class TransactionFormState extends ConsumerState<TransactionForm> {
                 error: (e, _) => Center(child: Text('Error: $e')),
                 data: (categories) {
                     if (isEdit && selectedAccount == null) {
-                        selectedAccount = accounts.firstWhere(
-                            (a) => a.id == widget.transaction!.accountId,
-                            orElse: () => accounts.first,
-                        );
+                        selectedAccount = accounts.firstWhere((a) => a.id == widget.transaction!.accountId, orElse: () => accounts.first);
                     }
                     if (isEdit && selectedCategory == null) {
-                        selectedCategory = categories.firstWhere(
-                            (c) => c.id == widget.transaction!.categoryId,
-                            orElse: () => categories.first,
-                        );
+                        selectedCategory = categories.firstWhere((c) => c.id == widget.transaction!.categoryId, orElse: () => categories.first);
                     }
 
                     return SingleChildScrollView(
@@ -221,16 +181,12 @@ class TransactionFormState extends ConsumerState<TransactionForm> {
                             mainAxisSize: MainAxisSize.min,
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                                // Title + delete button
                                 Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
                                         Text(
                                             isEdit ? 'Edit Transaction' : 'Add Transaction',
-                                            style: const TextStyle(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold,
-                                            ),
+                                            style: theme.textTheme.titleLarge, // Themed title
                                         ),
                                         if (isEdit)
                                             IconButton(
@@ -241,13 +197,11 @@ class TransactionFormState extends ConsumerState<TransactionForm> {
                                 ),
                                 const SizedBox(height: 16),
 
-                                // Amount
                                 TextField(
                                     controller: amountController,
                                     keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                    inputFormatters: [
-                                        FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))
-                                    ],
+                                    inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
+                                    style: theme.textTheme.bodyLarge,
                                     decoration: const InputDecoration(
                                         labelText: 'Amount',
                                         border: OutlineInputBorder(),
@@ -256,8 +210,7 @@ class TransactionFormState extends ConsumerState<TransactionForm> {
                                 ),
                                 const SizedBox(height: 16),
 
-                                // Date picker
-                                const Text('Date', style: TextStyle(fontWeight: FontWeight.w500)),
+                                Text('Date', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
                                 const SizedBox(height: 8),
                                 GestureDetector(
                                     onTap: pickDate,
@@ -265,66 +218,66 @@ class TransactionFormState extends ConsumerState<TransactionForm> {
                                         width: double.infinity,
                                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                                         decoration: BoxDecoration(
-                                            border: Border.all(color: Colors.grey),
+                                            border: Border.all(color: theme.dividerColor), // Themed border
                                             borderRadius: BorderRadius.circular(4),
                                         ),
                                         child: Text(
                                             '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}',
-                                            style: const TextStyle(fontSize: 16),
+                                            style: theme.textTheme.bodyLarge,
                                         ),
                                     ),
                                 ),
                                 const SizedBox(height: 16),
 
-                                // Account dropdown
-                                const Text('Account', style: TextStyle(fontWeight: FontWeight.w500)),
+                                Text('Account', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
                                 const SizedBox(height: 8),
                                 DropdownButtonFormField<Account>(
                                     value: selectedAccount,
                                     decoration: const InputDecoration(border: OutlineInputBorder()),
-                                    hint: const Text('Select Account'),
                                     items: accounts.map((acc) => DropdownMenuItem(
                                         value: acc,
-                                        child: dropdownItem(hexToColor(acc.color), acc.name),
+                                        child: dropdownItem(
+                                            context, 
+                                            hexToColor(acc.color), 
+                                            acc.name
+                                        )
                                     )).toList(),
                                     onChanged: (val) => setState(() => selectedAccount = val),
                                 ),
                                 const SizedBox(height: 16),
 
-                                // Category dropdown
-                                const Text('Category', style: TextStyle(fontWeight: FontWeight.w500)),
+                                Text('Category', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
                                 const SizedBox(height: 8),
                                 DropdownButtonFormField<Category>(
                                     value: selectedCategory,
                                     decoration: const InputDecoration(border: OutlineInputBorder()),
-                                    hint: const Text('Select Category'),
                                     items: categories.map((ctg) => DropdownMenuItem(
                                         value: ctg,
-                                        child: dropdownItem(hexToColor(ctg.color), ctg.name),
+                                        child: dropdownItem(
+                                            context, 
+                                            hexToColor(ctg.color), 
+                                            ctg.name
+                                        )
                                     )).toList(),
                                     onChanged: (val) => setState(() => selectedCategory = val),
                                 ),
                                 const SizedBox(height: 16),
 
-                                // Transaction type chips
-                                const Text('Type', style: TextStyle(fontWeight: FontWeight.w500)),
+                                Text('Type', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
                                 const SizedBox(height: 8),
                                 Wrap(
                                     spacing: 8,
                                     children: TransactionType.values.map((type) {
                                         final isSelected = selectedType == type;
+                                        final primaryColor = theme.colorScheme.primary; // Themed primary
                                         return GestureDetector(
                                             onTap: () => setState(() => selectedType = type),
                                             child: Container(
-                                                padding: const EdgeInsets.symmetric(
-                                                    horizontal: 14, vertical: 8
-                                                ),
+                                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                                                 decoration: BoxDecoration(
-                                                    color: isSelected
-                                                        ? Colors.blue.withOpacity(0.15)
-                                                        : Colors.transparent,
+                                                    color: isSelected ? primaryColor.withOpacity(0.15) : Colors.transparent,
                                                     border: Border.all(
-                                                        color: isSelected ? Colors.blue : Colors.grey,
+                                                        color: isSelected ? primaryColor : theme.disabledColor,
                                                         width: isSelected ? 2 : 1,
                                                     ),
                                                     borderRadius: BorderRadius.circular(20),
@@ -332,10 +285,8 @@ class TransactionFormState extends ConsumerState<TransactionForm> {
                                                 child: Text(
                                                     type.name,
                                                     style: TextStyle(
-                                                        color: isSelected ? Colors.blue : Colors.grey,
-                                                        fontWeight: isSelected
-                                                            ? FontWeight.bold
-                                                            : FontWeight.normal,
+                                                        color: isSelected ? primaryColor : theme.textTheme.bodyMedium?.color,
+                                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                                                     ),
                                                 ),
                                             ),
@@ -344,9 +295,9 @@ class TransactionFormState extends ConsumerState<TransactionForm> {
                                 ),
                                 const SizedBox(height: 16),
 
-                                // Note
                                 TextField(
                                     controller: noteController,
+                                    style: theme.textTheme.bodyLarge,
                                     decoration: const InputDecoration(
                                         labelText: 'Note (optional)',
                                         border: OutlineInputBorder(),
@@ -356,16 +307,12 @@ class TransactionFormState extends ConsumerState<TransactionForm> {
                                 ),
                                 const SizedBox(height: 24),
 
-                                // Submit button
                                 SizedBox(
                                     width: double.infinity,
                                     child: ElevatedButton(
                                         onPressed: isLoading ? null : submit,
                                         child: isLoading
-                                            ? const SizedBox(
-                                                height: 20, width: 20,
-                                                child: CircularProgressIndicator(strokeWidth: 2),
-                                            )
+                                            ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
                                             : Text(isEdit ? 'Save Changes' : 'Add Transaction'),
                                     ),
                                 ),

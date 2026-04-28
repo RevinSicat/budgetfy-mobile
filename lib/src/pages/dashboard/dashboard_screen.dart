@@ -26,12 +26,12 @@ class DashboardScreen extends ConsumerWidget{
 
     @override
     Widget build(BuildContext context, WidgetRef ref) {
+        final theme = Theme.of(context);
         final accountList = ref.watch(getAllAccountListProvider);
         final transactionList = ref.watch(getAllTransactionByPaginationProvider(const TransactionFilter()));
         final transactionListGrouped = ref.watch(getAllTransactionGroupedByDateByPaginationProvider(const TransactionFilter()));
 
         return Scaffold(
-            backgroundColor: const Color(0xFFF9F9F9),
             body: SafeArea(
                 child: SingleChildScrollView(
                     child: Column(
@@ -43,14 +43,13 @@ class DashboardScreen extends ConsumerWidget{
                                 child: GreetingHeader()
                             ),
                             // Accounts Header
-                            const Padding(
+                            Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 16),
                                 child: Text(
                                     'Accounts',
-                                    style: TextStyle(
-                                        fontSize: 24,
+                                    style: theme.textTheme.titleLarge?.copyWith(
                                         fontWeight: FontWeight.bold
-                                    ),
+                                    )
                                 )
                             ),
                             // Account Card List
@@ -72,14 +71,13 @@ class DashboardScreen extends ConsumerWidget{
                             ),
                             // Transactions Header
                             const SizedBox(height: 24),
-                            const Padding(
+                            Padding(
                                 padding: const EdgeInsetsGeometry.symmetric(horizontal: 16),
                                 child: Text(
                                     'Transactions',
-                                    style: TextStyle(
-                                        fontSize: 24,
+                                    style: theme.textTheme.titleLarge?.copyWith(
                                         fontWeight: FontWeight.bold
-                                    ),
+                                    )
                                 )
                             ),
                             // Transaction Tile List

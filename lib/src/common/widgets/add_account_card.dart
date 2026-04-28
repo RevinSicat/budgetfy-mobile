@@ -18,6 +18,8 @@ class AddAccountCard extends ConsumerWidget {
 
     @override
     Widget build(BuildContext context, WidgetRef ref) {
+        final theme = Theme.of(context);
+
         return GestureDetector(
             onTap: () => openAccountForm(context),
             child: Container(
@@ -26,7 +28,7 @@ class AddAccountCard extends ConsumerWidget {
                 margin: const EdgeInsets.only(right: 12),
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: theme.cardTheme.color,
                     border: Border.all(color: Colors.grey, width: 2),
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [

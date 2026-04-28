@@ -14,6 +14,7 @@ class TransactionTile extends StatelessWidget {
 
     @override
     Widget build(BuildContext context) {
+        final theme = Theme.of(context);
         final categoryColor = transaction.category != null 
             ? hexToColor(transaction.category!.color)
             : Colors.grey;
@@ -40,11 +41,14 @@ class TransactionTile extends StatelessWidget {
                 margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 padding: const EdgeInsets.all(12), // Added padding for the custom Row layout
                 decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: theme.cardTheme.color,
                     borderRadius: BorderRadius.circular(8),
+                    border: theme.brightness == Brightness.dark 
+                            ? Border.all(color: Colors.white10) 
+                            : null,
                     boxShadow: [
                         BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withOpacity(theme.brightness == Brightness.light ? 0.1 : 0.3),
                             offset: const Offset(2, 2),
                             blurRadius: 2,
                             spreadRadius: 1,
@@ -75,9 +79,8 @@ class TransactionTile extends StatelessWidget {
                                             Expanded(
                                                 child: Text(
                                                     transaction.category?.name ?? 'Uncategorized',
-                                                    style: const TextStyle(
+                                                    style: theme.textTheme.bodyLarge?.copyWith(
                                                         fontWeight: FontWeight.bold,
-                                                        fontSize: 14,
                                                     ),
                                                     maxLines: 1,
                                                     overflow: TextOverflow.ellipsis,
@@ -102,10 +105,10 @@ class TransactionTile extends StatelessWidget {
                                         ),
                                         child: Text(
                                             transaction.account?.name ?? 'No Account',
-                                            style: TextStyle(
+                                            style: theme.textTheme.bodyLarge?.copyWith(
                                                 fontSize: 10,
                                                 fontWeight: FontWeight.w600,
-                                                color: accountColor,
+                                                color: accountColor
                                             ),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
@@ -126,7 +129,7 @@ class TransactionTile extends StatelessWidget {
                                 child: Icon(
                                     Icons.article,
                                     size: 18,
-                                    color: Colors.grey.shade600
+                                    color: theme.textTheme.bodyMedium?.color
                                 )
                             ),
                             const SizedBox(width: 8),
@@ -135,11 +138,11 @@ class TransactionTile extends StatelessWidget {
                         // Right Side: Amount
                         Text(
                             '${isIncome ? '+' : ''}${transaction.amount.toStringAsFixed(2)}',
-                            style: TextStyle(
+                            style: theme.textTheme.bodyLarge?.copyWith(
                                 color: isIncome ? Colors.green : Colors.red,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16,
-                            ),
+                            )
                         ),
                     ],
                 ),
