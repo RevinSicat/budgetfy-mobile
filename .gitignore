@@ -45,3 +45,5 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 build_supabase_credentials.txt
+config_prod.json
+config_test.json
