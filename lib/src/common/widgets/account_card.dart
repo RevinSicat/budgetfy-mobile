@@ -56,12 +56,16 @@ class AccountCard extends ConsumerWidget {
                         Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                                Text(
-                                    account.name,
-                                    style: theme.textTheme.titleLarge?.copyWith(
-                                        color: Colors.white, // Overriding to white for contrast against account color
-                                        fontSize: 16,
-                                    ),
+                                Expanded(
+                                    child: Text(
+                                        account.name,
+                                        style: theme.textTheme.titleLarge?.copyWith(
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 1
+                                    )
                                 ),
                                 Container(
                                     width: 36,
