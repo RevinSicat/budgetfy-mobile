@@ -13,6 +13,7 @@ class AccountForm extends ConsumerStatefulWidget {
 }
 
 class AccountFormState extends ConsumerState<AccountForm> {
+    final formKey = GlobalKey<FormState>();
     final nameController = TextEditingController();
     String selectedColor = colorList[0];
     bool isLoading = false;
@@ -33,8 +34,12 @@ class AccountFormState extends ConsumerState<AccountForm> {
     }
 
     Future<void> submit() async {
-        if (nameController.text.trim().isEmpty) return;
-        setState(() => isLoading = true);
+        if (!formKey.currentState!.validate()) {
+            return; 
+        }
+        setState(
+            () => isLoading = true
+        );
 
         try {
             final service = ref.read(accountServiceProvider);
@@ -116,84 +121,106 @@ class AccountFormState extends ConsumerState<AccountForm> {
                 left: 16, right: 16, top: 24,
                 bottom: MediaQuery.of(context).viewInsets.bottom + 24,
             ),
-            child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                    Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                            Text(
-                                isEdit ? 'Edit Account' : 'Add Account',
-                                style: theme.textTheme.titleLarge
-                            ),
-                            if (isEdit) IconButton(
-                                onPressed: isLoading ? null : deleteAccount,
-                                icon: const Icon(Icons.delete, color: Colors.red)
-                            ),
-                        ],
-                    ),
-                    
-                    const SizedBox(height: 16),
-
-                    // Name field
-                    TextField(
-                        controller: nameController,
-                        decoration: const InputDecoration(
-                            labelText: 'Account Name',
-                            border: OutlineInputBorder(),
-                        ),
-                        textCapitalization: TextCapitalization.words,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // Color picker
-                    Text(
-                        'Color', 
-                        style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)
-                    ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: colorList.map((color) {
-                            final isSelected = color == selectedColor;
-                            return GestureDetector(
-                                onTap: () => setState(() => selectedColor = color),
-                                child: Container(
-                                    width: 36,
-                                    height: 36,
-                                    decoration: BoxDecoration(
-                                        color: hexToColor(color),
-                                        shape: BoxShape.circle,
-                                        border: isSelected
-                                            ? Border.all(
-                                                color: theme.brightness == Brightness.light ? Colors.black : Colors.white, 
-                                                width: 3
-                                            )
-                                            : null,
-                                    ),
+            child: Form(
+                key: formKey,
+                child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                        // Account Form Header
+                        Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                                Text(
+                                    isEdit ? 'Edit Account' : 'Add Account',
+                                    style: theme.textTheme.titleLarge
                                 ),
-                            );
-                        }).toList(),
-                    ),
-                    const SizedBox(height: 24),
-
-                    // Submit button
-                    SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                            onPressed: isLoading ? null : submit,
-                            child: isLoading
-                                ? const SizedBox(
-                                    height: 20, width: 20,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
+                                if (isEdit) IconButton(
+                                    onPressed: isLoading ? null : deleteAccount,
+                                    icon: const Icon(Icons.delete, color: Colors.red)
                                 )
-                                : Text(isEdit ? 'Save Changes' : 'Add Account'),
+                            ]
                         ),
-                    ),
-                ],
-            ),
+                        
+                        const SizedBox(height: 16),
+
+                        // Account Name field
+                        TextFormField(
+                            controller: nameController,
+                            decoration: const InputDecoration(
+                                labelText: 'Account Name',
+                                border: OutlineInputBorder(),
+                                errorStyle: TextStyle(color: Colors.red),
+                            ),
+                            textCapitalization: TextCapitalization.words,
+                            maxLength: 64,
+                            validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                    return 'Please enter an account name';
+                                }
+                                return null;
+                            }
+                        ),
+
+                        const SizedBox(height: 16),
+
+                        // Account Color Selection
+                        Text(
+                            'Color', 
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.bold
+                            )
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            children: colorList.map((color) {
+                                final isSelected = color == selectedColor;
+                                return GestureDetector(
+                                    onTap: () => setState(
+                                        () => selectedColor = color
+                                    ),
+                                    child: Container(
+                                        width: 36,
+                                        height: 36,
+                                        decoration: BoxDecoration(
+                                            color: hexToColor(color),
+                                            shape: BoxShape.circle,
+                                            border: isSelected
+                                                ? Border.all(
+                                                    color: theme.brightness == Brightness.light 
+                                                        ? Colors.black 
+                                                        : Colors.white, 
+                                                    width: 3
+                                                )
+                                                : null
+                                        )
+                                    )
+                                );
+                            }).toList()
+                        ),
+
+                        const SizedBox(height: 24),
+
+                        // Submit button
+                        SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                                onPressed: isLoading 
+                                    ? null 
+                                    : submit, // Keep this
+                                child: isLoading
+                                    ? const SizedBox(
+                                        height: 20, width: 20,
+                                        child: CircularProgressIndicator(strokeWidth: 2),
+                                    )
+                                    : Text(isEdit ? 'Save Changes' : 'Add Account')
+                            )
+                        )
+                    ]
+                )
+            )
         );
     }
 }
