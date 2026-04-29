@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'account_form.dart';
+import '../forms/account_form.dart';
 
 class AddAccountCard extends ConsumerWidget {
     const AddAccountCard({super.key});

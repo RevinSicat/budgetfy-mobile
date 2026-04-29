@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../features/transaction/transaction.dart';
-import '../../features/category/category.dart';
-import '../../common/utils/color_utility.dart';
-import '../../common/widgets/transaction_form.dart';
-import '../../common/widgets/tool_tip.dart';
+import '../../../features/transaction/transaction.dart';
+import '../../../features/category/category.dart';
+import '../../utils/color_utility.dart';
+import '../forms/transaction_form.dart';
+import '../tool_tip.dart';
 
 class TransactionTile extends StatelessWidget {
     final Transaction transaction;

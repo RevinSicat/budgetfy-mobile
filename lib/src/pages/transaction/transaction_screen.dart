@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/transaction/transaction_provider.dart';
-import '../../common/widgets/transaction_tile_group_section.dart';
+import '../../common/widgets/tiles/transaction_tile_group_section.dart';
 
 class TransactionScreen extends ConsumerWidget {
     const TransactionScreen({super.key});

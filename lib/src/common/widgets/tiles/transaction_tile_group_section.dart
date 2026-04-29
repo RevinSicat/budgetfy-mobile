@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../features/transaction/transaction.dart';
-import '../widgets/transaction_tile.dart';
+import '../../../features/transaction/transaction.dart';
+import 'transaction_tile.dart';
 
 class TransactionGroupSection extends StatelessWidget {
     final DateTime date;

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/account/account_provider.dart';
-import '../../common/widgets/account_card.dart';
-import '../../common/widgets/add_account_card.dart';
+import '../../common/widgets/cards/account_card.dart';
+import '../../common/widgets/cards/add_account_card.dart';
 
 class AccountScreen extends ConsumerWidget {
     const AccountScreen({super.key});

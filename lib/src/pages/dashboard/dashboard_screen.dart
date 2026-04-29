@@ -2,13 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/account/account_provider.dart';
 import '../../features/transaction/transaction_provider.dart';
-import '../../common/widgets/account_card.dart';
-import '../../common/widgets/transaction_tile_group_section.dart';
+import '../../common/widgets/cards/account_card.dart';
+import '../../common/widgets/tiles/transaction_tile_group_section.dart';
 import 'widgets/greeting_header.dart';
 import '../../features/account/account.dart';
-import '../../common/widgets/add_account_card.dart';
-import '../../common/widgets/account_form.dart';
-import '../../common/widgets/transaction_form.dart';
+import '../../common/widgets/cards/add_account_card.dart';
+import '../../common/widgets/forms/account_form.dart';
+import '../../common/widgets/forms/transaction_form.dart';
 
 class DashboardScreen extends ConsumerWidget{
     const DashboardScreen({super.key});

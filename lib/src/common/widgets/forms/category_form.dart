@@ -2,9 +2,9 @@ import 'package:budgetfy/src/features/account/account_provider.dart';
 import 'package:budgetfy/src/features/transaction/transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../features/category/category.dart';
-import '../../features/category/category_provider.dart';
-import '../utils/color_utility.dart';
+import '../../../features/category/category.dart';
+import '../../../features/category/category_provider.dart';
+import '../../utils/color_utility.dart';
 
 class CategoryForm extends ConsumerStatefulWidget {
     final Category? category;
