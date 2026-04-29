@@ -84,7 +84,17 @@ final getTransactionByIdProvider = FutureProvider.family<Transaction, String>((r
     return service.getById(id);
 });
 
+final getTransactionAmountSumProvider = FutureProvider<double>((ref) async {
+    final service = ref.read(transactionServiceProvider);
+    return service.getTransactionAmmountSum();
+});
+
 final getTotalTransactionAmmountByAccountIdProvider = FutureProvider.family<double, String>((ref, accountId) async {
     final service = ref.read(transactionServiceProvider);
-    return service.getTransactionAmmountByAccountId(accountId);
+    return service.getTransactionAmmountSumByAccountId(accountId);
+});
+
+final getTransactionAmmountSumByCategoryIdProvider = FutureProvider.family<double, String>((ref, categoryId) async {
+    final service = ref.read(transactionServiceProvider);
+    return service.getTransactionAmmountSumByCategoryId(categoryId);
 });

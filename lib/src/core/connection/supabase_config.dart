@@ -54,6 +54,7 @@ class SupabaseConfig {
         }
 
         try {
+            // ignore: unnecessary_null_comparison
             if (Supabase.instance.client != null) {
                 return true;
             }

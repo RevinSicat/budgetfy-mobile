@@ -131,7 +131,7 @@ class TransactionTile extends StatelessWidget {
                                 },
                                 child: Icon(
                                     Icons.article,
-                                    size: 18,
+                                    size: 24,
                                     color: theme.textTheme.bodyMedium?.color
                                 )
                             ),

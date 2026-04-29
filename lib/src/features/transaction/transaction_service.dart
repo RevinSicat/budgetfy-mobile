@@ -77,8 +77,27 @@ class TransactionService {
         }
     }
 
+    /// [GET]: Retreive Transaction Amount Sum
+    Future<double> getTransactionAmmountSum() async {
+        try {
+            final response = await _sbdb.from('transactions')
+                .select('amount');
+
+            double amountSum = 0.0;
+
+            for (var row in response as List) {
+                amountSum += (row['amount'] as num).toDouble();
+            }
+
+            return amountSum;
+        } catch (e) {
+            print('[Error fetching transaction amount sum]: $e');
+            rethrow;
+        }
+    }
+
     /// [GET]: Retreive Transaction Amount Sum by accountId
-    Future<double> getTransactionAmmountByAccountId(String accountId) async {
+    Future<double> getTransactionAmmountSumByAccountId(String accountId) async {
         try {
             final response = await _sbdb.from('transactions')
                 .select('amount')
@@ -92,7 +111,27 @@ class TransactionService {
 
             return amountSum;
         } catch (e) {
-            print('[Error fetching transaction amount sum]: $e');
+            print('[Error fetching transaction amount sum by account]: $e');
+            rethrow;
+        }
+    }
+
+    /// [GET]: Retreive Transaction Amount Sum by categoryId
+    Future<double> getTransactionAmmountSumByCategoryId(String categoryId) async {
+        try {
+            final response = await _sbdb.from('transactions')
+                .select('amount')
+                .eq('category_id', categoryId);
+
+            double amountSum = 0.0;
+
+            for (var row in response as List) {
+                amountSum += (row['amount'] as num).toDouble();
+            }
+
+            return amountSum;
+        } catch (e) {
+            print('[Error fetching transaction amount sum by category]: $e');
             rethrow;
         }
     }
