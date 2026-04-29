@@ -28,7 +28,7 @@ class CategoryScreen extends ConsumerWidget {
                     }
 
                     return ListView.builder(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                         itemCount: categories.length,
                         itemBuilder: (context, index) {
                             final category = categories[index];
