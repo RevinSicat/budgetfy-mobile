@@ -175,33 +175,35 @@ class AccountFormState extends ConsumerState<AccountForm> {
                             )
                         ),
                         const SizedBox(height: 8),
-                        Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: colorList.map((color) {
-                                final isSelected = color == selectedColor;
-                                return GestureDetector(
-                                    onTap: () => setState(
-                                        () => selectedColor = color
-                                    ),
-                                    child: Container(
-                                        width: 36,
-                                        height: 36,
-                                        decoration: BoxDecoration(
-                                            color: hexToColor(color),
-                                            shape: BoxShape.circle,
-                                            border: isSelected
-                                                ? Border.all(
-                                                    color: theme.brightness == Brightness.light 
-                                                        ? Colors.black 
-                                                        : Colors.white, 
-                                                    width: 3
-                                                )
-                                                : null
+                        SizedBox(
+                            height: 60, // enough space for the circles
+                            child: ListView(
+                                scrollDirection: Axis.horizontal,
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                children: colorList.map((color) {
+                                    final isSelected = color == selectedColor;
+                                    return GestureDetector(
+                                        onTap: () => setState(() => selectedColor = color),
+                                        child: Container(
+                                            margin: const EdgeInsets.only(right: 12), // spacing between circles
+                                            width: 36,
+                                            height: 36,
+                                            decoration: BoxDecoration(
+                                                color: hexToColor(color),
+                                                shape: BoxShape.circle,
+                                                border: isSelected
+                                                    ? Border.all(
+                                                        color: theme.brightness == Brightness.light
+                                                            ? Colors.black
+                                                            : Colors.white,
+                                                        width: 3
+                                                    )
+                                                    : null
+                                            )
                                         )
-                                    )
-                                );
-                            }).toList()
+                                    );
+                                }).toList()
+                            )
                         ),
 
                         const SizedBox(height: 24),

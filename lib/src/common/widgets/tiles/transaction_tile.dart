@@ -78,15 +78,18 @@ class TransactionTile extends StatelessWidget {
                                             const SizedBox(width: 8),
                                             Expanded(
                                                 child: Text(
-                                                    transaction.category?.name ?? 'Uncategorized',
+                                                    transaction.subcategory != null
+                                                        ? '${transaction.category?.name ?? 'Uncategorized'}: ${transaction.subcategory!.name}'
+                                                        : transaction.category?.name ?? 'Uncategorized',
                                                     style: theme.textTheme.bodyLarge?.copyWith(
                                                         fontWeight: FontWeight.bold,
+                                                        fontSize: 14
                                                     ),
                                                     maxLines: 1,
                                                     overflow: TextOverflow.ellipsis,
-                                                ),
-                                            ),
-                                        ],
+                                                )
+                                            )
+                                        ]
                                     ),
                                     
                                     const SizedBox(height: 6),

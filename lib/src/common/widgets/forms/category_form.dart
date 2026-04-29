@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../features/category/category.dart';
 import '../../../features/category/category_provider.dart';
 import '../../utils/color_utility.dart';
+import '../subcategory_manager.dart';
 
 class CategoryForm extends ConsumerStatefulWidget {
     final Category? category;
@@ -224,31 +225,35 @@ class CategoryFormState extends ConsumerState<CategoryForm> {
                             )
                         ),
                         const SizedBox(height: 8),
-                        Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            children: colorList.map((color) {
-                                final isSelected = color == selectedColor;
-                                return GestureDetector(
-                                    onTap: () => setState(() => selectedColor = color),
-                                    child: Container(
-                                        width: 36,
-                                        height: 36,
-                                        decoration: BoxDecoration(
-                                        color: hexToColor(color),
-                                        shape: BoxShape.circle,
-                                        border: isSelected
-                                            ? Border.all(
-                                                color: theme.brightness == Brightness.light 
-                                                    ? Colors.black 
-                                                    : Colors.white,
-                                                width: 3
+                        SizedBox(
+                            height: 60, // enough space for the circles
+                            child: ListView(
+                                scrollDirection: Axis.horizontal,
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                children: colorList.map((color) {
+                                    final isSelected = color == selectedColor;
+                                    return GestureDetector(
+                                        onTap: () => setState(() => selectedColor = color),
+                                        child: Container(
+                                            margin: const EdgeInsets.only(right: 12), // spacing between circles
+                                            width: 36,
+                                            height: 36,
+                                            decoration: BoxDecoration(
+                                                color: hexToColor(color),
+                                                shape: BoxShape.circle,
+                                                border: isSelected
+                                                    ? Border.all(
+                                                        color: theme.brightness == Brightness.light
+                                                            ? Colors.black
+                                                            : Colors.white,
+                                                        width: 3
+                                                    )
+                                                    : null
                                             )
-                                            : null
                                         )
-                                    )
-                                );
-                            }).toList()
+                                    );
+                                }).toList()
+                            )
                         ),
 
                         const SizedBox(height: 24),
@@ -265,7 +270,18 @@ class CategoryFormState extends ConsumerState<CategoryForm> {
                                     )
                                     : Text(isEdit ? 'Save Changes' : 'Add Category')
                             )
-                        )
+                        ),
+                        if (isEdit) ...[
+                            const SizedBox(height: 16),
+                            Text(
+                                'Subcategories',
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.bold
+                                )
+                            ),
+                            const SizedBox(height: 8),
+                            SubcategoryManager(categoryId: widget.category!.id),
+                        ],
                     ]
                 )
             )

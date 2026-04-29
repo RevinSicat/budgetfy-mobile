@@ -6,6 +6,8 @@ import '../../../features/transaction/transaction.dart';
 import '../../../features/transaction/transaction_provider.dart';
 import '../../../features/account/account_provider.dart';
 import '../../../features/category/category_provider.dart';
+import '../../../features/subcategory/subcategory.dart';
+import '../../../features/subcategory/subcategory_provider.dart';
 import '../../../features/account/account.dart';
 import '../../../features/category/category.dart';
 import '../../utils/dropdown_item.dart';
@@ -27,6 +29,7 @@ class TransactionFormState extends ConsumerState<TransactionForm> {
 
     Account? selectedAccount;
     Category? selectedCategory;
+    Subcategory? selectedSubcategory;
     TransactionType selectedType = TransactionType.Default;
     DateTime selectedDate = DateTime.now();
     bool isLoading = false;
@@ -122,6 +125,7 @@ class TransactionFormState extends ConsumerState<TransactionForm> {
                 id: widget.transaction?.id ?? '',
                 accountId: selectedAccount!.id,
                 categoryId: selectedCategory!.id,
+                subcategoryId: selectedSubcategory?.id,
                 amount: finalAmount,
                 date: selectedDate,
                 transactionType: selectedType,
@@ -185,7 +189,6 @@ class TransactionFormState extends ConsumerState<TransactionForm> {
         }
     }
 
-    // Reusable Bootstrap-style error message widget
     Widget errorText(String message) {
         return Padding(
             padding: const EdgeInsets.only(top: 6, left: 4),
@@ -323,7 +326,9 @@ class TransactionFormState extends ConsumerState<TransactionForm> {
 
                                 Text(
                                     'Account',
-                                    style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                        fontWeight: FontWeight.bold
+                                    )
                                 ),
                                 const SizedBox(height: 8),
                                 DropdownButtonFormField<Account>(
@@ -342,7 +347,9 @@ class TransactionFormState extends ConsumerState<TransactionForm> {
                                         ),
                                         focusedBorder: OutlineInputBorder(
                                             borderSide: BorderSide(
-                                                color: accountError != null ? Colors.red : theme.colorScheme.primary,
+                                                color: accountError != null 
+                                                    ? Colors.red 
+                                                    : theme.colorScheme.primary,
                                                 width: 2
                                             )
                                         )
@@ -363,7 +370,9 @@ class TransactionFormState extends ConsumerState<TransactionForm> {
 
                                 Text(
                                     'Category',
-                                    style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                        fontWeight: FontWeight.bold
+                                    )
                                 ),
                                 const SizedBox(height: 8),
                                 DropdownButtonFormField<Category>(
@@ -396,12 +405,81 @@ class TransactionFormState extends ConsumerState<TransactionForm> {
                                     onChanged: (val) {
                                         setState(() {
                                             selectedCategory = val;
+                                            selectedSubcategory = null;
                                             if (hasSubmitAttempt) validate();
                                         });
                                     }
                                 ),
                                 if (categoryError != null) errorText(categoryError!),
                                 const SizedBox(height: 16),
+
+                                if (selectedCategory != null) ...[
+                                    Text(
+                                        'Subcategory (optional)',
+                                        style: theme.textTheme.bodyMedium?.copyWith(
+                                            fontWeight: FontWeight.bold
+                                        )
+                                    ),
+                                    const SizedBox(height: 8),
+                                    ref.watch(subcategoryByCategoryProvider(selectedCategory!.id)).when(
+                                        loading: () => const SizedBox(
+                                            height: 20,
+                                            width: 20,
+                                            child: CircularProgressIndicator(strokeWidth: 2)
+                                        ),
+                                        error: (e, _) => Text(
+                                            'Error loading subcategories: $e',
+                                            style: theme.textTheme.bodyMedium
+                                        ),
+                                        data: (subcategories) {
+                                            if (isEdit 
+                                                && selectedSubcategory == null 
+                                                && widget.transaction!.subcategoryId != null) {
+                                                final match = subcategories.where(
+                                                    (s) => s.id == widget.transaction!.subcategoryId,
+                                                );
+                                                if (match.isNotEmpty) {
+                                                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                                                        if (mounted) {
+                                                            setState(
+                                                                () => selectedSubcategory = match.first
+                                                            );
+                                                        }
+                                                    });
+                                                }
+                                            }
+
+                                            if (subcategories.isEmpty) {
+                                                return Text(
+                                                    'No subcategories for this category.',
+                                                    style: theme.textTheme.bodyMedium
+                                                );
+                                            }
+
+                                            return DropdownButtonFormField<Subcategory?>(
+                                                value: selectedSubcategory,
+                                                decoration: const InputDecoration(
+                                                    border: OutlineInputBorder()
+                                                ),
+                                                hint: const Text('None'),
+                                                items: [
+                                                    const DropdownMenuItem<Subcategory?>(
+                                                        value: null,
+                                                        child: Text('None')
+                                                    ),
+                                                    ...subcategories.map((sub) => DropdownMenuItem(
+                                                        value: sub,
+                                                        child: Text(sub.name)
+                                                    ))
+                                                ],
+                                                onChanged: (val) => setState(
+                                                    () => selectedSubcategory = val
+                                                )
+                                            );
+                                        }
+                                    ),
+                                    const SizedBox(height: 16),
+                                ],
 
                                 // Transaction type chips
                                 Text(

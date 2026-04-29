@@ -1,3 +1,4 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/connection/supabase_config.dart';
 import '../transaction/transaction.dart';
 
@@ -11,7 +12,7 @@ class TransactionService {
             final int to = from + limit - 1;
 
             final response = await _sbdb.from('transactions')
-                .select('*, accounts(*), categories(*)')
+                .select('*, accounts(*), categories(*), subcategories(*)')
                 .order('date', ascending: false)
                 .range(from, to);
 
@@ -29,7 +30,7 @@ class TransactionService {
             DateTime? startDate, DateTime? endDate, int page = 0, int limit = 20,}) async {
         try {
             var query = _sbdb.from('transactions')
-                .select('*, accounts(*), categories(*)');
+                .select('*, accounts(*), categories(*), subcategories(*)');
             if (accountId != null) {
                 query = query.eq('account_id', accountId);
             }
@@ -66,7 +67,7 @@ class TransactionService {
     Future<Transaction> getById(String id) async {
         try {
             final response = await _sbdb.from('transactions')
-                .select('*, accounts(*), categories(*)')
+                .select('*, accounts(*), categories(*), subcategories(*)')
                 .eq('id', id)
                 .single();
             return Transaction.fromJson(response);
@@ -96,6 +97,38 @@ class TransactionService {
         }
     }
 
+    /// [GET]: Retreive Transaction Count by accountId
+    Future<int> getTransactionCountByAccountId(String accountId) async {
+        try {
+            final response = await _sbdb
+                .from('transactions')
+                .select('id')
+                .eq('account_id', accountId)
+                .count(CountOption.exact);
+
+            return response.count;
+        } catch (e) {
+            print('[Error fetching transaction count]: $e');
+            rethrow;
+        }
+    }
+
+    /// [GET]: Retreive Transaction Count by categoryId
+    Future<int> getTransactionCountByCategoryId(String categoryId) async {
+        try {
+            final response = await _sbdb
+                .from('transactions')
+                .select('id')
+                .eq('account_id', categoryId)
+                .count(CountOption.exact);
+
+            return response.count;
+        } catch (e) {
+            print('[Error fetching transaction count]: $e');
+            rethrow;
+        }
+    }
+    
     /// [POST]: Create Transaction
     Future<void> save(Transaction transaction) async {
         try {
