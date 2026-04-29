@@ -19,11 +19,18 @@ CREATE TABLE categories (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
--- 4. Create Transactions Table
+-- 4. CREATE TABLE subcategories (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  category_id UUID NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+  name TEXT NOT NULL
+);
+
+-- 5. Create Transactions Table
 CREATE TABLE transactions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
     category_id UUID NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+    subcategory_id UUID REFERENCES subcategories(id) ON DELETE SET NULL,
     amount NUMERIC NOT NULL,
     date TIMESTAMPTZ NOT NULL,
     transaction_type transaction_type NOT NULL DEFAULT 'Default',
