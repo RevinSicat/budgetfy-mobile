@@ -10,3 +10,8 @@ final subcategoryByCategoryProvider = FutureProvider.family<List<Subcategory>, S
     final service = ref.read(subcategoryServiceProvider);
     return service.getByCategoryId(categoryId);
 });
+
+final getSubcategoryCountByCategoryIdProvider = FutureProvider.family<int, String>((ref, categoryId) async {
+    final service = ref.read(subcategoryServiceProvider);
+    return service.getSubcategoryCountByCategoryId(categoryId);
+});

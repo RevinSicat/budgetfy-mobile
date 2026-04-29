@@ -33,6 +33,7 @@ class SubcategoryManagerState extends ConsumerState<SubcategoryManager> {
             ));
             nameController.clear();
             ref.invalidate(subcategoryByCategoryProvider(widget.categoryId));
+            ref.invalidate(getSubcategoryCountByCategoryIdProvider(widget.categoryId));
         } catch (e) {
             if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(

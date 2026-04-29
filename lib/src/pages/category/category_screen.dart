@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/category/category_provider.dart';
 import '../../common/widgets/forms/category_form.dart';
-import '../../common/widgets/cards/category_card.dart';
+import '../../common/widgets/tiles/category_tiles.dart'; 
 
 class CategoryScreen extends ConsumerWidget {
     const CategoryScreen({super.key});
@@ -22,20 +22,20 @@ class CategoryScreen extends ConsumerWidget {
                 )
             ),
             body: categoryList.when(
-                data: (categories) => SingleChildScrollView(
-                    padding: const EdgeInsets.all(12),
-                    child: Wrap(
-                        spacing: 12,      // horizontal spacing between cards
-                        runSpacing: 12,   // vertical spacing between rows
-                        children: categories.map((c) {
-                        return SizedBox(
-                            width: (MediaQuery.of(context).size.width - 50 - (12 * 2)) / 3,
-                            // screen width minus total horizontal padding and spacing, divided by 3
-                            child: CategoryCard(category: c),
-                        );
-                        }).toList(),
-                    ),
-                ),
+                data: (categories) {
+                    if (categories.isEmpty) {
+                        return const Center(child: Text('No categories found.'));
+                    }
+
+                    return ListView.builder(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                        itemCount: categories.length,
+                        itemBuilder: (context, index) {
+                            final category = categories[index];
+                            return CategoryTile(category: category);
+                        },
+                    );
+                },
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (e, _) => Center(child: Text('Error encountered: $e')),
             ),

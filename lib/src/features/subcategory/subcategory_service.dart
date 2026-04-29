@@ -22,18 +22,18 @@ class SubcategoryService {
         }
     }
 
-    /// [GET]: Retreive Subcategories Count by categoryId
+    /// [GET]: Retreive Subcategory Count by categoryId
     Future<int> getSubcategoryCountByCategoryId(String categoryId) async {
         try {
             final response = await _sbdb
-                .from('transactions')
+                .from('subcategories')
                 .select('id')
-                .eq('account_id', categoryId)
+                .eq('category_id', categoryId)
                 .count(CountOption.exact);
 
             return response.count;
         } catch (e) {
-            print('[Error fetching transaction count]: $e');
+            print('[Error fetching subcategory count]: $e');
             rethrow;
         }
     }
