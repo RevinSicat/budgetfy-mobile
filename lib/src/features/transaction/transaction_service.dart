@@ -158,7 +158,7 @@ class TransactionService {
             final response = await _sbdb
                 .from('transactions')
                 .select('id')
-                .eq('account_id', categoryId)
+                .eq('category_id', categoryId)
                 .count(CountOption.exact);
 
             return response.count;
