@@ -8,30 +8,40 @@ import 'package:budgetfy/src/pages/setup/setup_screen.dart';
 
 void main() async {
     WidgetsFlutterBinding.ensureInitialized();
-
     final supabaseReady = await SupabaseConfig.init();
-
-    runApp(ProviderScope(
-        child: BudgetfyApp(supabaseReady: supabaseReady),
-    ));
+    runApp(
+        ProviderScope(
+            child: BudgetfyApp(supabaseReady: supabaseReady),
+        )
+    );
 }
 
-class BudgetfyApp extends ConsumerWidget {
+class BudgetfyApp extends ConsumerStatefulWidget {
     final bool supabaseReady;
     const BudgetfyApp({
-        super.key, 
+        super.key,
         required this.supabaseReady
     });
 
     @override
-    Widget build(BuildContext context, WidgetRef ref) {
-        final themeMode = ref.watch(themeProvider);
+    ConsumerState<BudgetfyApp> createState() => _BudgetfyAppState();
+}
+
+class _BudgetfyAppState extends ConsumerState<BudgetfyApp> {
+    @override
+    void initState() {
+        super.initState();
         ref.read(themeProvider.notifier).init();
+    }
+
+    @override
+    Widget build(BuildContext context) {
+        final themeMode = ref.watch(themeProvider);
 
         return MaterialApp(
             theme: AppTheme.fromMode(themeMode),
-            home: supabaseReady 
-                ? const AppShell() 
+            home: widget.supabaseReady
+                ? const AppShell()
                 : const SetupScreen(),
         );
     }
