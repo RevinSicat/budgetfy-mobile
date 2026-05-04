@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:restart_app/restart_app.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/theme/design_tokens.dart';
 import '../../core/theme/theme_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -18,7 +19,10 @@ class SettingsScreen extends ConsumerWidget {
             appBar: AppBar(
                 title: const Text(
                     'Settings',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24)
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, 
+                        fontSize: AppFontSize.headline
+                    )
                 )
             ),
             body: ListView(

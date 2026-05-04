@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/theme/design_tokens.dart';
 import '../../../features/account/account.dart';
 import '../../../features/transaction/transaction_provider.dart';
 import '../../utils/color_utility.dart';
@@ -61,7 +62,7 @@ class AccountCard extends ConsumerWidget {
                                         account.name,
                                         style: theme.textTheme.titleLarge?.copyWith(
                                             color: Colors.white,
-                                            fontSize: 16,
+                                            fontSize: AppFontSize.bodyLg,
                                         ),
                                         overflow: TextOverflow.ellipsis,
                                         maxLines: 1
@@ -87,7 +88,7 @@ class AccountCard extends ConsumerWidget {
                                         amount.toStringAsFixed(2),
                                         style: theme.textTheme.titleLarge?.copyWith(
                                             color: Colors.white,
-                                            fontSize: 20,
+                                            fontSize: AppFontSize.headline,
                                         )
                                     ),
                                     loading: () => const SizedBox(

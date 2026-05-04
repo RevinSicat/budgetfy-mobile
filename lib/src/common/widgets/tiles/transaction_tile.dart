@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/theme/design_tokens.dart';
 import '../../../features/transaction/transaction.dart';
 import '../../../features/category/category.dart';
 import '../../utils/color_utility.dart';
@@ -83,7 +84,7 @@ class TransactionTile extends StatelessWidget {
                                                         : transaction.category?.name ?? 'Uncategorized',
                                                     style: theme.textTheme.bodyLarge?.copyWith(
                                                         fontWeight: FontWeight.bold,
-                                                        fontSize: 14
+                                                        fontSize: AppFontSize.body
                                                     ),
                                                     maxLines: 1,
                                                     overflow: TextOverflow.ellipsis,
@@ -109,7 +110,7 @@ class TransactionTile extends StatelessWidget {
                                         child: Text(
                                             transaction.account?.name ?? 'No Account',
                                             style: theme.textTheme.bodyLarge?.copyWith(
-                                                fontSize: 10,
+                                                fontSize: AppFontSize.caption,
                                                 fontWeight: FontWeight.w600,
                                                 color: accountColor
                                             ),
@@ -144,7 +145,7 @@ class TransactionTile extends StatelessWidget {
                             style: theme.textTheme.bodyLarge?.copyWith(
                                 color: isIncome ? Colors.green : Colors.red,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                                fontSize: AppFontSize.bodyLg,
                             )
                         ),
                     ],

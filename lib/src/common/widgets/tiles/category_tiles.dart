@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/theme/design_tokens.dart';
 import '../../../features/category/category.dart';
 import '../../../features/subcategory/subcategory_provider.dart';
 import '../../utils/color_utility.dart';
@@ -91,7 +92,7 @@ class CategoryTileState extends ConsumerState<CategoryTile>
                                                 category.name,
                                                 style: theme.textTheme.bodyLarge?.copyWith(
                                                     fontWeight: FontWeight.bold,
-                                                    fontSize: 15,
+                                                    fontSize: AppFontSize.bodyLg,
                                                 ),
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis
@@ -106,7 +107,7 @@ class CategoryTileState extends ConsumerState<CategoryTile>
                                                 data: (count) => Text(
                                                     '$count subcategor${count == 1 ? 'y' : 'ies'}',
                                                     style: theme.textTheme.bodyMedium?.copyWith(
-                                                        fontSize: 12,
+                                                        fontSize: AppFontSize.label,
                                                         color: theme.colorScheme.primary.withOpacity(0.8),
                                                     )
                                                 )
@@ -134,7 +135,7 @@ class CategoryTileState extends ConsumerState<CategoryTile>
                                             child: Text(
                                                 isIncome ? 'INCOME' : 'EXPENSE',
                                                 style: theme.textTheme.bodyLarge?.copyWith(
-                                                    fontSize: 10,
+                                                    fontSize: AppFontSize.caption,
                                                     fontWeight: FontWeight.bold,
                                                     color: isIncome ? Colors.green : Colors.red
                                                 )

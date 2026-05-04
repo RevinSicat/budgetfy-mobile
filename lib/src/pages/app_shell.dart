@@ -1,6 +1,6 @@
-import 'package:budgetfy/src/pages/dashboard/dashboard_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dashboard/dashboard_screen.dart';
 import 'transaction/transaction_screen.dart';
 import 'account/account_screen.dart';
 import 'category/category_screen.dart';
@@ -19,41 +19,45 @@ class AppShell extends ConsumerWidget {
         SettingsScreen()
     ];
 
+    static const List<NavigationDestination> destinations = [
+        NavigationDestination(
+            icon: Icon(Icons.dashboard_outlined),
+            selectedIcon: Icon(Icons.dashboard),
+            label: 'Dashboard'
+        ),
+        NavigationDestination(
+            icon: Icon(Icons.receipt_long_outlined),
+            selectedIcon: Icon(Icons.receipt_long),
+            label: 'Transactions'
+        ),
+        NavigationDestination(
+            icon: Icon(Icons.account_balance_wallet_outlined),
+            selectedIcon: Icon(Icons.account_balance_wallet),
+            label: 'Accounts'
+        ),
+        NavigationDestination(
+            icon: Icon(Icons.category_outlined),
+            selectedIcon: Icon(Icons.category),
+            label: 'Categories'
+        ),
+        NavigationDestination(
+            icon: Icon(Icons.settings_outlined),
+            selectedIcon: Icon(Icons.settings),
+            label: 'Settings'
+        )
+    ];
+
     @override
     Widget build(BuildContext context, WidgetRef ref) {
         final selectedIndex = ref.watch(selectedIndexProvider);
 
         return Scaffold(
-            body: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-                child: appScreens[selectedIndex],
-            ),
-            bottomNavigationBar: BottomNavigationBar(
-                currentIndex: selectedIndex,
-                onTap: (index) => ref.read(selectedIndexProvider.notifier).state = index,
-                type: BottomNavigationBarType.fixed,
-                items: const [
-                    BottomNavigationBarItem(
-                        icon: Icon(Icons.data_usage),
-                        label: 'Dashboard',
-                    ),
-                    BottomNavigationBarItem(
-                        icon: Icon(Icons.payments),
-                        label: 'Transactions',
-                    ),
-                    BottomNavigationBarItem(
-                        icon: Icon(Icons.wallet),
-                        label: 'Accounts',
-                    ),
-                    BottomNavigationBarItem(
-                        icon: Icon(Icons.category),
-                        label: 'Categories',
-                    ),
-                    BottomNavigationBarItem(
-                        icon: Icon(Icons.settings),
-                        label: 'Settings',
-                    )
-                ]
+            body: appScreens[selectedIndex],
+            bottomNavigationBar: NavigationBar(
+                selectedIndex: selectedIndex,
+                onDestinationSelected: (index) =>
+                    ref.read(selectedIndexProvider.notifier).state = index,
+                destinations: destinations
             )
         );
     }
