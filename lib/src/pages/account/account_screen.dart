@@ -13,24 +13,34 @@ class AccountScreen extends ConsumerWidget {
         final accountList = ref.watch(getAllAccountListProvider);
 
         return Scaffold(
+            /// [Account Header]: =================================================================
             appBar: AppBar(title: Text(
                 'Accounts',
                 style: theme.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold
                 )
             )),
+            /// [Account Cards List]: =============================================================
             body: accountList.when(
-                data: (accounts) => SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
-                    child: Wrap(
-                        spacing: 12,
-                        runSpacing: 12,
-                        children: [
-                            ...accounts.map((acc) => AccountCard(account: acc)),
-                            AddAccountCard()
-                        ]
-                    ),
-                ),
+                data: (accounts) {
+                    if (accounts.isEmpty) {
+                        return const Center(
+                            child: Text('No Accounts found.')
+                        );
+                    }
+
+                    return SingleChildScrollView(
+                        padding: const EdgeInsets.all(16),
+                        child: Wrap(
+                            spacing: 12,
+                            runSpacing: 12,
+                            children: [
+                                ...accounts.map((acc) => AccountCard(account: acc)),
+                                AddAccountCard()
+                            ]
+                        )
+                    );
+                },
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (e, _) => Center(child: Text('Error: $e')),
             )

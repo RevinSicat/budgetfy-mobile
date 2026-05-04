@@ -146,12 +146,13 @@ class DashboardScreenState extends ConsumerState<DashboardScreen> {
                                             )
                                         ),
 
-                                const SizedBox(height: 80),
-                            ],
-                        ),
-                    ),
-                ),
+                                const SizedBox(height: 80)
+                            ]
+                        )
+                    )
+                )
             ),
+            /// [Add Transaction Button]: =========================================================
             floatingActionButton: FloatingActionButton(
                 onPressed: () {
                     showModalBottomSheet(
@@ -160,11 +161,11 @@ class DashboardScreenState extends ConsumerState<DashboardScreen> {
                         shape: const RoundedRectangleBorder(
                             borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                         ),
-                        builder: (_) => const TransactionForm(),
+                        builder: (_) => const TransactionForm()
                     );
                 },
-                child: const Icon(Icons.add),
-            ),
+                child: const Icon(Icons.add)
+            )
         );
     }
 }

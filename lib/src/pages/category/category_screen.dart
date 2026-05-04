@@ -13,6 +13,7 @@ class CategoryScreen extends ConsumerWidget {
         final categoryList = ref.watch(getAllCategoryListProvider);
 
         return Scaffold(
+            /// [Category Header]: ================================================================
             appBar: AppBar(
                 title: Text(
                     'Categories',
@@ -21,6 +22,7 @@ class CategoryScreen extends ConsumerWidget {
                     )
                 )
             ),
+            /// [Category Tiles List]: ============================================================
             body: categoryList.when(
                 data: (categories) {
                     if (categories.isEmpty) {
@@ -39,6 +41,7 @@ class CategoryScreen extends ConsumerWidget {
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (e, _) => Center(child: Text('Error encountered: $e')),
             ),
+            /// [Add Category Button]: ============================================================
             floatingActionButton: FloatingActionButton(
                 onPressed: () {
                     showModalBottomSheet(

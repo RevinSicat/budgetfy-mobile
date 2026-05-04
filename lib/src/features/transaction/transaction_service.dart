@@ -5,6 +5,7 @@ import '../transaction/transaction.dart';
 class TransactionService {
     final _sbdb = SupabaseConfig.client;
 
+    /// Transaction List ==========================================================================
     /// [GET]: Retreives Transaction List
     Future<List<Transaction>> getAllbyPagination({int page = 0, int limit = 20}) async {
         try {
@@ -63,6 +64,7 @@ class TransactionService {
         }
     }
 
+    /// Transaction ===============================================================================
     /// [GET]: Retreive Transaction by {Id}
     Future<Transaction> getById(String id) async {
         try {
@@ -77,6 +79,7 @@ class TransactionService {
         }
     }
 
+    /// double ====================================================================================
     /// [GET]: Retreive Transaction Amount Sum
     Future<double> getTransactionAmmountSum() async {
         try {
@@ -136,6 +139,7 @@ class TransactionService {
         }
     }
 
+    /// int =======================================================================================
     /// [GET]: Retreive Transaction Count by accountId
     Future<int> getTransactionCountByAccountId(String accountId) async {
         try {
@@ -168,6 +172,7 @@ class TransactionService {
         }
     }
     
+    /// void Create, Update, Delete ===============================================================
     /// [POST]: Create Transaction
     Future<void> save(Transaction transaction) async {
         try {

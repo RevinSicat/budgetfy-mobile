@@ -14,6 +14,7 @@ class SettingsScreen extends ConsumerWidget {
         final currentTheme = ref.watch(themeProvider);
 
         return Scaffold(
+            /// [Settings Header]: ================================================================
             appBar: AppBar(
                 title: const Text(
                     'Settings',
@@ -22,6 +23,7 @@ class SettingsScreen extends ConsumerWidget {
             ),
             body: ListView(
                 children: [
+                    /// [Appearance Subheader]: ===================================================
                     Padding(
                         padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
                         child: Text(
@@ -32,6 +34,7 @@ class SettingsScreen extends ConsumerWidget {
                             )
                         )
                     ),
+                    /// [Theme Selection List]: ===================================================
                     ...AppThemeMode.values.map((mode) {
                         final labels = {
                             AppThemeMode.light: ('Light', Icons.light_mode),
@@ -50,6 +53,7 @@ class SettingsScreen extends ConsumerWidget {
                         );
                     }),
                     const SizedBox(height: 8),
+                    /// [Configuration Subheader]: ================================================
                     Padding(
                         padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
                         child: Text(
@@ -60,6 +64,7 @@ class SettingsScreen extends ConsumerWidget {
                             )
                         )
                     ),
+                    /// [Reset Supabase Configuration]: ===========================================
                     ListTile(
                         leading: const Icon(Icons.link_off, color: Colors.red),
                         title: const Text('Reset Supabase Config'),
@@ -89,8 +94,9 @@ class SettingsScreen extends ConsumerWidget {
                         }
                     ),
                     const SizedBox(height: 8),
+                    /// [App Versioning]: =========================================================
                     Text(
-                        'Budgetfy v.1.1\n1b3971d',
+                        'Budgetfy v.1.3b\n64c3255',
                         textAlign: TextAlign.center,
                         style: theme.textTheme.bodySmall
                     )

@@ -42,6 +42,7 @@ class TransactionScreenState extends ConsumerState<TransactionScreen> {
         final notifier = ref.read(transactionListNotifierProvider.notifier);
 
         return Scaffold(
+            /// [Transaction Header]: =============================================================
             appBar: AppBar(
                 title: Text(
                     'Transactions',
@@ -50,6 +51,7 @@ class TransactionScreenState extends ConsumerState<TransactionScreen> {
                     )
                 )
             ),
+            /// [Transaction Tile List]: ==========================================================
             body: transactionList.when(
                 data: (_) {
                     final entries = grouped.entries.toList();
@@ -91,13 +93,16 @@ class TransactionScreenState extends ConsumerState<TransactionScreen> {
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (e, _) => Center(child: Text('Error: $e'))
             ),
+            /// [Add Transaction Button]: =========================================================
             floatingActionButton: FloatingActionButton(
                 onPressed: () {
                     showModalBottomSheet(
                         context: context,
                         isScrollControlled: true,
                         shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                            borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(16)
+                            )
                         ),
                         builder: (_) => const TransactionForm()
                     );

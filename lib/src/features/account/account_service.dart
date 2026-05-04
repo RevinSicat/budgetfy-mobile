@@ -4,6 +4,7 @@ import '../account/account.dart';
 class AccountService {
     final _sbdb = SupabaseConfig.client;
 
+    /// Account List ==============================================================================
     /// [GET]: Retreives Account List
     Future<List<Account>> getAllList() async {
         try {
@@ -20,6 +21,7 @@ class AccountService {
         }
     }
 
+    /// void Create, Update, Delete ===============================================================
     /// [POST]: Create Account 
     Future<void> save(Account account) async {
         try {

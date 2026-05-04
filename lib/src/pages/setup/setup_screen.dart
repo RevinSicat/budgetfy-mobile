@@ -49,7 +49,6 @@ class SetupScreenState extends ConsumerState<SetupScreen> {
             if (SupabaseConfig.isInitialized) {
                 Restart.restartApp();
             } else {
-                // First setup — initialize normally, no restart needed
                 await Supabase.initialize(url: url, anonKey: anonKey);
                 if (mounted) {
                     Navigator.of(context).pushReplacement(
@@ -78,6 +77,7 @@ class SetupScreenState extends ConsumerState<SetupScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                             const SizedBox(height: 40),
+                            /// [Cloud Sync Icon]: ================================================ 
                             Center(
                                 child: Icon(
                                     Icons.cloud_sync,
@@ -86,6 +86,7 @@ class SetupScreenState extends ConsumerState<SetupScreen> {
                                 ),
                             ),
                             const SizedBox(height: 24),
+                            /// [Setup Budgetfy Header]: ==========================================
                             Center(
                                 child: Text(
                                     'Setup Budgetfy',
@@ -93,6 +94,7 @@ class SetupScreenState extends ConsumerState<SetupScreen> {
                                 ),
                             ),
                             const SizedBox(height: 8),
+                            /// [Connect your Supabase description]: ==============================
                             Center(
                                 child: Text(
                                     'Connect your Supabase database to get started.',
@@ -101,8 +103,15 @@ class SetupScreenState extends ConsumerState<SetupScreen> {
                                 )
                             ),
                             const SizedBox(height: 40),
-                            Text('Supabase URL', style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
+                            /// [Supabase URL Label]: =============================================
+                            Text(
+                                'Supabase URL', 
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                    fontWeight: FontWeight.w600
+                                )
+                            ),
                             const SizedBox(height: 8),
+                            /// [Supabase URL Field]: =============================================
                             TextField(
                                 controller: urlController,
                                 decoration: const InputDecoration(
@@ -113,10 +122,15 @@ class SetupScreenState extends ConsumerState<SetupScreen> {
                                 autocorrect: false
                             ),
                             const SizedBox(height: 16),
-
-                            // Anon key field
-                            Text('Anon Key', style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600)),
+                            /// [Supabase Anon Key Label]: ========================================
+                            Text(
+                                'Anon Key', 
+                                style: theme.textTheme.bodyLarge?.copyWith(
+                                    fontWeight: FontWeight.w600
+                                )
+                            ),
                             const SizedBox(height: 8),
+                            /// [Supabase Anon Key Field]: ========================================
                             TextField(
                                 controller: anonKeyController,
                                 decoration: const InputDecoration(
@@ -127,16 +141,18 @@ class SetupScreenState extends ConsumerState<SetupScreen> {
                                 obscureText: true
                             ),
                             const SizedBox(height: 24),
-
-                            // Error message
+                            /// [Error Message]: ==================================================
                             if (errorMessage != null)
                                 Padding(
                                     padding: const EdgeInsets.only(bottom: 16),
                                     child: Text(
                                         errorMessage!,
-                                        style: theme.textTheme.bodyMedium?.copyWith(color: Colors.red)
+                                        style: theme.textTheme.bodyMedium?.copyWith(
+                                            color: Colors.red
+                                        )
                                     )
                                 ),
+                            /// [Connect your Supabase description 2]: ============================
                             Center(
                                 child: Text(
                                     'This will be used to save and syncronize all of your Transactions, Accounts, and Categories in Budgetfy',
@@ -145,6 +161,7 @@ class SetupScreenState extends ConsumerState<SetupScreen> {
                                 )
                             ),
                             const SizedBox(height: 24),
+                            /// [Connect to Supabase Button]: =====================================
                             SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton(
@@ -157,8 +174,8 @@ class SetupScreenState extends ConsumerState<SetupScreen> {
                                         : const Text('Connect')
                                 )
                             ),
-
                             const SizedBox(height: 16),
+                            /// [Connect your Supabase description 3]: ============================
                             Center(
                                 child: Text(
                                     'You can find these in your Supabase project\nunder Settings → API',

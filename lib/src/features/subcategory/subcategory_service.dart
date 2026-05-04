@@ -5,6 +5,7 @@ import 'subcategory.dart';
 class SubcategoryService {
     final _sbdb = SupabaseConfig.client;
 
+    /// Subcategory List ==========================================================================
     /// [GET]: Retreive Subcategories by category id
     Future<List<Subcategory>> getByCategoryId(String categoryId) async {
         try {
@@ -22,6 +23,7 @@ class SubcategoryService {
         }
     }
 
+    /// int =======================================================================================
     /// [GET]: Retreive Subcategory Count by categoryId
     Future<int> getSubcategoryCountByCategoryId(String categoryId) async {
         try {
@@ -38,6 +40,7 @@ class SubcategoryService {
         }
     }
 
+    /// void Create, Update, Delete ===============================================================
     /// [POST]: Create subcategory
     Future<void> save(Subcategory subcategory) async {
         try {

@@ -5,6 +5,7 @@ import '../category/category.dart';
 class CategoryService {
     final _sbdb = SupabaseConfig.client;
 
+    /// Category List =============================================================================
     /// [GET]: Retreives Category List
     Future<List<Category>> getAllList() async {
         try {
@@ -21,6 +22,7 @@ class CategoryService {
         }
     }
 
+    /// void Create, Update, Delete ===============================================================
     /// [POST]: Create Category
     Future<void> save(Category category) async {
         try {
