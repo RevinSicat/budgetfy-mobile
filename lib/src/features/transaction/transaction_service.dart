@@ -64,6 +64,68 @@ class TransactionService {
         }
     }
 
+    /// [GET]: Retrieve Transactions by {Year, Month} with pagination
+    Future<List<Transaction>> getByYearAndMonth({
+            required int year,
+            required int month,
+            int page = 0,
+            int limit = 20,
+    }) async {
+        try {
+            final startDate = DateTime(year, month, 1);
+            final endDate = DateTime(year, month + 1, 1).subtract(const Duration(milliseconds: 1));
+
+            final int from = page * limit;
+            final int to = from + limit - 1;
+
+            final response = await _sbdb
+                .from('transactions')
+                .select('*, accounts(*), categories(*), subcategories(*)')
+                .gte('date', startDate.toIso8601String())
+                .lte('date', endDate.toIso8601String())
+                .order('date', ascending: false)
+                .range(from, to);
+
+            return (response as List)
+                .map((json) => Transaction.fromJson(json))
+                .toList();
+        } catch (e) {
+            print('[Error fetching transactions by year/month]: $e');
+            rethrow;
+        }
+    }
+
+    /// [GET]: Retrieve Transactions grouped by month for a given year
+    Future<Map<int, List<Transaction>>> getTransactionGroupByMonthByYear(int year) async {
+        try {
+            final startDate = DateTime(year, 1, 1);
+            final endDate = DateTime(year + 1, 1, 1).subtract(const Duration(milliseconds: 1));
+
+            final response = await _sbdb
+                .from('transactions')
+                .select('*, accounts(*), categories(*), subcategories(*)')
+                .gte('date', startDate.toIso8601String())
+                .lte('date', endDate.toIso8601String())
+                .order('date', ascending: false);
+
+            final transactions = (response as List)
+                .map((json) => Transaction.fromJson(json))
+                .toList();
+
+            // Group by month number (1–12)
+            final Map<int, List<Transaction>> grouped = {};
+            for (final t in transactions) {
+                final month = t.date.month; // assumes Transaction has a DateTime date field
+                grouped.putIfAbsent(month, () => []).add(t);
+            }
+
+            return grouped;
+        } catch (e) {
+            print('[Error fetching transactions by year grouped by month]: $e');
+            rethrow;
+        }
+    }
+
     /// Transaction ===============================================================================
     /// [GET]: Retreive Transaction by {Id}
     Future<Transaction> getById(String id) async {

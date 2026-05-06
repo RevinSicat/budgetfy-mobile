@@ -42,9 +42,9 @@ class DashboardScreenState extends ConsumerState<DashboardScreen> {
     Widget build(BuildContext context) {
         final theme = Theme.of(context);
         final accountList = ref.watch(getAllAccountListProvider);
-        final transactionList = ref.watch(transactionListNotifierProvider);
-        final transactionListGrouped = ref.watch(transactionListGroupedProvider);
-        final notifier = ref.read(transactionListNotifierProvider.notifier);
+        final transactionList = ref.watch(dashboardTransactionNotifierProvider);
+        final transactionListGrouped = ref.watch(dashboardTransactionGroupedProvider);
+        final notifier = ref.read(dashboardTransactionNotifierProvider.notifier);
 
         return Scaffold(
             body: SafeArea(
@@ -131,20 +131,22 @@ class DashboardScreenState extends ConsumerState<DashboardScreen> {
 
                                 // [Footer] =======================================================
                                 if (transactionList.hasValue)
-                                    notifier.hasMore
+                                    transactionList.value!.isLoadingMore
                                         ? const Padding(
                                             padding: EdgeInsets.all(16),
-                                            child: Center(child: CircularProgressIndicator()),
+                                            child: Center(child: CircularProgressIndicator())
                                         )
-                                        : const Padding(
-                                            padding: EdgeInsets.all(16),
-                                            child: Center(
-                                                child: Text(
-                                                    'No more transactions',
-                                                    style: TextStyle(color: Colors.grey),
+                                        : !transactionList.value!.hasMore
+                                            ? const Padding(
+                                                padding: EdgeInsets.all(16),
+                                                child: Center(
+                                                    child: Text(
+                                                        'No more transactions this month',
+                                                        style: TextStyle(color: Colors.grey)
+                                                    )
                                                 )
                                             )
-                                        ),
+                                            : const SizedBox.shrink(),
 
                                 const SizedBox(height: 80)
                             ]

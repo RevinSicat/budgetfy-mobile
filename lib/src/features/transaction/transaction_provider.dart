@@ -22,6 +22,8 @@ class TransactionFilter {
     });
 }
 
+/// Transaction List (transaction_screen.dart) — full list, all-time, paginated ===================
+
 class TransactionListNotifier extends AutoDisposeAsyncNotifier<List<Transaction>> {
     int _page = 0;
     bool _hasMore = true;
@@ -71,41 +73,116 @@ final transactionListNotifierProvider = AutoDisposeAsyncNotifierProvider<Transac
 final transactionListGroupedProvider = Provider.autoDispose<Map<DateTime, List<Transaction>>>((ref) {
     final transactionList = ref.watch(transactionListNotifierProvider);
     return transactionList.maybeWhen(
-        data: (transactions) {
-            final Map<DateTime, List<Transaction>> grouped = {};
-            for (var trn in transactions) {
-                final date = DateTime(trn.date.year, trn.date.month, trn.date.day);
-                grouped.putIfAbsent(date, () => []).add(trn);
-            }
-            return grouped;
-        },
+        data: (transactions) => _groupByDate(transactions),
         orElse: () => {},
     );
 });
 
-final dashboardRecentTransactionsProvider = FutureProvider<List<Transaction>>((ref) async {
-    final service = ref.read(transactionServiceProvider);
-    return service.getAllbyPagination(page: 0, limit: 20);
+/// Dashboard Transactions (dashboard_screen.dart) — current month only, paginated ================
+
+class DashboardTransactionState {
+    final List<Transaction> transactions;
+    final bool hasMore;
+    final bool isLoadingMore;
+    final int page;
+
+    const DashboardTransactionState({
+        this.transactions = const [],
+        this.hasMore = true,
+        this.isLoadingMore = false,
+        this.page = 0,
+    });
+
+    DashboardTransactionState copyWith({
+        List<Transaction>? transactions,
+        bool? hasMore,
+        bool? isLoadingMore,
+        int? page,
+    }) => DashboardTransactionState(
+        transactions: transactions ?? this.transactions,
+        hasMore: hasMore ?? this.hasMore,
+        isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+        page: page ?? this.page,
+    );
+}
+
+class DashboardTransactionNotifier
+    extends AutoDisposeAsyncNotifier<DashboardTransactionState> {
+    static const int _limit = 20;
+
+    @override
+    Future<DashboardTransactionState> build() async {
+        final now = DateTime.now();
+        final service = ref.read(transactionServiceProvider);
+        final results = await service.getByYearAndMonth(
+            year: now.year,
+            month: now.month,
+            page: 0,
+            limit: _limit,
+        );
+        return DashboardTransactionState(
+            transactions: results,
+            hasMore: results.length == _limit,
+            page: 0,
+        );
+    }
+
+    Future<void> fetchMore() async {
+        final current = state.valueOrNull;
+        if (current == null || !current.hasMore || current.isLoadingMore) return;
+
+        state = AsyncData(current.copyWith(isLoadingMore: true));
+
+        try {
+            final now = DateTime.now();
+            final nextPage = current.page + 1;
+            final service = ref.read(transactionServiceProvider);
+            final results = await service.getByYearAndMonth(
+                year: now.year,
+                month: now.month,
+                page: nextPage,
+                limit: _limit,
+            );
+            state = AsyncData(current.copyWith(
+                transactions: [...current.transactions, ...results],
+                hasMore: results.length == _limit,
+                isLoadingMore: false,
+                page: nextPage,
+            ));
+        } catch (e, st) {
+            state = AsyncData(current.copyWith(isLoadingMore: false));
+        }
+    }
+}
+
+final dashboardTransactionNotifierProvider = AutoDisposeAsyncNotifierProvider<DashboardTransactionNotifier, DashboardTransactionState>(
+    DashboardTransactionNotifier.new,
+);
+
+final dashboardTransactionGroupedProvider = Provider.autoDispose<Map<DateTime, List<Transaction>>>((ref) {
+    final state = ref.watch(dashboardTransactionNotifierProvider).valueOrNull;
+    if (state == null) return {};
+    return _groupByDate(state.transactions);
 });
 
-final dashboardRecentTransactionsGroupedProvider = Provider<Map<DateTime, List<Transaction>>>((ref) {
-    final transactionList = ref.watch(dashboardRecentTransactionsProvider);
-    return transactionList.maybeWhen(
-        data: (transactions) {
-            final Map<DateTime, List<Transaction>> grouped = {};
-            for (var trn in transactions) {
-                final date = DateTime(trn.date.year, trn.date.month, trn.date.day);
-                grouped.putIfAbsent(date, () => []).add(trn);
-            }
-            return grouped;
-        },
-        orElse: () => {},
-    );
-});
+/// Shared Helpers ================================================================================
+
+Map<DateTime, List<Transaction>> _groupByDate(List<Transaction> transactions) {
+    final Map<DateTime, List<Transaction>> grouped = {};
+    for (final trn in transactions) {
+        final date = DateTime(trn.date.year, trn.date.month, trn.date.day);
+        grouped.putIfAbsent(date, () => []).add(trn);
+    }
+    return grouped;
+}
+
+/// Service Provider ==============================================================================
 
 final transactionServiceProvider = Provider<TransactionService>((ref) {
     return TransactionService();
 });
+
+/// Misc FutureProviders ==========================================================================
 
 final getAllTransactionByPaginationProvider = FutureProvider.family<List<Transaction>, TransactionFilter>((ref, filter) async {
     final service = ref.read(transactionServiceProvider);
