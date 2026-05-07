@@ -52,7 +52,7 @@ class CategoryService {
                 .eq('id', category.id);
 
             if (isTypeChanged) {
-                await TransactionService().updateTransactionsAmountByCategory(category.id);
+                await TransactionService().updateAmountByCategory(category.id);
             }
         } catch (e) {
             print('[Error updating category]: $e');

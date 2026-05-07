@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../dashboard/category_chart_data.dart';
 import 'transaction.dart';
 import 'transaction_service.dart';
 
@@ -149,7 +150,7 @@ class DashboardTransactionNotifier
                 isLoadingMore: false,
                 page: nextPage,
             ));
-        } catch (e, st) {
+        } catch (e) {
             state = AsyncData(current.copyWith(isLoadingMore: false));
         }
     }
@@ -202,23 +203,36 @@ final getTransactionBySpecificationProvider = FutureProvider.family<List<Transac
     );
 });
 
-final getTransactionByIdProvider =
-    FutureProvider.family<Transaction, String>((ref, id) async {
-        final service = ref.read(transactionServiceProvider);
-        return service.getById(id);
-    });
+final getCategoryAmountSumByMonthAndYearProvider = FutureProvider.autoDispose<List<CategoryChartData>>((ref) async {
+    final now = DateTime.now();
+    final service = ref.read(transactionServiceProvider);
+    return service.getCategoryAmountSumByMonthAndYear(
+        month: now.month,
+        year: now.year
+    );
+});
+
+final getTransactionByIdProvider = FutureProvider.family<Transaction, String>((ref, id) async {
+    final service = ref.read(transactionServiceProvider);
+    return service.getById(id);
+});
 
 final getTransactionAmountSumProvider = FutureProvider<double>((ref) async {
     final service = ref.read(transactionServiceProvider);
-    return service.getTransactionAmmountSum();
+    return service.getAmountSum();
 });
 
 final getTotalTransactionAmmountByAccountIdProvider = FutureProvider.family<double, String>((ref, accountId) async {
     final service = ref.read(transactionServiceProvider);
-    return service.getTransactionAmmountSumByAccountId(accountId);
+    return service.getAmountSumByAccountId(accountId);
 });
 
 final getTransactionAmmountSumByCategoryIdProvider = FutureProvider.family<double, String>((ref, categoryId) async {
     final service = ref.read(transactionServiceProvider);
-    return service.getTransactionAmmountSumByCategoryId(categoryId);
+    return service.getAmountSumByCategoryId(categoryId);
+});
+
+final getTransactionNetTotalsProvider = FutureProvider.autoDispose<Map<String, double>>((ref) async {
+    final service = ref.read(transactionServiceProvider);
+    return service.getNetTotals();
 });

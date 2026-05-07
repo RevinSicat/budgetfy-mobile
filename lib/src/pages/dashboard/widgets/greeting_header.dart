@@ -19,7 +19,7 @@ class GreetingHeader extends StatelessWidget{
             getGreeting(),
             style: Theme.of(context)
                     .textTheme
-                    .headlineLarge
+                    .displaySmall
         );
     }
 }

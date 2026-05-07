@@ -7,6 +7,7 @@ import '../../common/widgets/tiles/transaction_tile_group_section.dart';
 import 'widgets/greeting_header.dart';
 import '../../common/widgets/cards/add_account_card.dart';
 import '../../common/widgets/forms/transaction_form.dart';
+import 'widgets/net_totals_widget.dart';
 
 class DashboardScreen extends ConsumerStatefulWidget {
     const DashboardScreen({super.key});
@@ -34,7 +35,7 @@ class DashboardScreenState extends ConsumerState<DashboardScreen> {
         final position = scrollController.position;
         final isNearBottom = position.pixels >= position.maxScrollExtent - 300;
         if (isNearBottom) {
-            ref.read(transactionListNotifierProvider.notifier).fetchMore();
+            ref.read(dashboardTransactionNotifierProvider.notifier).fetchMore();
         }
     }
 
@@ -50,8 +51,10 @@ class DashboardScreenState extends ConsumerState<DashboardScreen> {
             body: SafeArea(
                 child: RefreshIndicator(
                     onRefresh: () async {
-                        ref.invalidate(transactionListNotifierProvider);
+                        ref.invalidate(dashboardTransactionNotifierProvider);
                         ref.invalidate(getAllAccountListProvider);
+                        ref.invalidate(getTransactionNetTotalsProvider);
+                        ref.invalidate(getCategoryAmountSumByMonthAndYearProvider);
                     },
                     child: SingleChildScrollView(
                         controller: scrollController,
@@ -93,7 +96,6 @@ class DashboardScreenState extends ConsumerState<DashboardScreen> {
                                         error: (e, _) => Center(child: Text('Error: $e'))
                                     )
                                 ),
-
                                 // [Transactions Header]: =========================================
                                 const SizedBox(height: 24),
                                 Padding(
@@ -147,8 +149,33 @@ class DashboardScreenState extends ConsumerState<DashboardScreen> {
                                                 )
                                             )
                                             : const SizedBox.shrink(),
-
-                                const SizedBox(height: 80)
+                                Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                                    child: Divider(
+                                        height: 24,
+                                        thickness: 1,
+                                        color: theme.dividerColor.withOpacity(0.2)
+                                    )
+                                ),
+                                /// [Net Totals Header]: ==========================================
+                                const SizedBox(height: 12),
+                                Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                                    child: Text(
+                                        'Net Totals',
+                                        style: theme.textTheme.titleLarge?.copyWith(
+                                            fontWeight: FontWeight.bold,
+                                        )
+                                    )
+                                ),
+                                /// [Net Totals Cards]: ===========================================
+                                const SizedBox(height: 12),
+                                
+                                Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                                    child: const NetTotalsWidget()
+                                ),
+                                const SizedBox(height: 80),
                             ]
                         )
                     )

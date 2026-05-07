@@ -1,5 +1,7 @@
+import 'package:budgetfy/src/features/category/category.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/connection/supabase_config.dart';
+import '../dashboard/category_chart_data.dart';
 import '../transaction/transaction.dart';
 
 class TransactionService {
@@ -65,12 +67,8 @@ class TransactionService {
     }
 
     /// [GET]: Retrieve Transactions by {Year, Month} with pagination
-    Future<List<Transaction>> getByYearAndMonth({
-            required int year,
-            required int month,
-            int page = 0,
-            int limit = 20,
-    }) async {
+    Future<List<Transaction>> getByYearAndMonth({required int year,required int month,
+            int page = 0, int limit = 20}) async {
         try {
             final startDate = DateTime(year, month, 1);
             final endDate = DateTime(year, month + 1, 1).subtract(const Duration(milliseconds: 1));
@@ -96,7 +94,7 @@ class TransactionService {
     }
 
     /// [GET]: Retrieve Transactions grouped by month for a given year
-    Future<Map<int, List<Transaction>>> getTransactionGroupByMonthByYear(int year) async {
+    Future<Map<int, List<Transaction>>> getGroupByMonthByYear(int year) async {
         try {
             final startDate = DateTime(year, 1, 1);
             final endDate = DateTime(year + 1, 1, 1).subtract(const Duration(milliseconds: 1));
@@ -112,10 +110,9 @@ class TransactionService {
                 .map((json) => Transaction.fromJson(json))
                 .toList();
 
-            // Group by month number (1–12)
             final Map<int, List<Transaction>> grouped = {};
             for (final t in transactions) {
-                final month = t.date.month; // assumes Transaction has a DateTime date field
+                final month = t.date.month;
                 grouped.putIfAbsent(month, () => []).add(t);
             }
 
@@ -141,9 +138,85 @@ class TransactionService {
         }
     }
 
+    /// Map String double =========================================================================
+    /// [GET]: Retreive Net Totals
+    Future<Map<String, double>> getNetTotals() async {
+        try {
+            double netWorth = 0.00;
+            double netIncome = 0.00;
+            double netExpense = 0.00;
+            final response = await _sbdb.from('transactions')
+                .select('amount');
+
+            for (var row in response as List) {
+                final double amount = (row['amount'] as num).toDouble();
+
+                if (amount >= 0) {
+                    netIncome += amount;
+                } else {
+                    netExpense += amount.abs();
+                }
+            }
+            netWorth = netIncome - netExpense;
+            return {
+                'net_worth': double.parse(netWorth.toStringAsFixed(2)),
+                'net_income': double.parse(netIncome.toStringAsFixed(2)),
+                'net_expense': double.parse(netExpense.toStringAsFixed(2))
+            };
+        } catch (e) {
+            print('[Error fetching transaction net totals]: $e');
+            rethrow;
+        }
+    }
+
+    /// [GET]: Retrieve Transaction Category Amount Sum by {month, year}
+    Future<List<CategoryChartData>> getCategoryAmountSumByMonthAndYear({required int month, required int year,}) async {
+        try {
+            final startDate = DateTime(year, month, 1);
+            final endDate = DateTime(year, month + 1, 1)
+                .subtract(const Duration(milliseconds: 1));
+
+            final response = await _sbdb
+                .from('transactions')
+                .select('amount, categories(id, name, color, type)')
+                .gte('date', startDate.toIso8601String())
+                .lte('date', endDate.toIso8601String());
+
+            final Map<String, Map<String, dynamic>> grouped = {};
+
+            for (var row in response as List) {
+                final cat = row['categories'] as Map<String, dynamic>;
+                final id = cat['id'] as String;
+                final amount = (row['amount'] as num).toDouble().abs();
+
+                if (!grouped.containsKey(id)) {
+                    grouped[id] = {'meta': cat, 'total': 0.0};
+                }
+                grouped[id]!['total'] = (grouped[id]!['total'] as double) + amount;
+            }
+
+            return grouped.values.map((entry) {
+                final meta = entry['meta'] as Map<String, dynamic>;
+                return CategoryChartData(
+                    categoryId: meta['id'] as String,
+                    name: meta['name'] as String,
+                    color: meta['color'] as String,
+                    type: CategoryType.values.firstWhere(
+                        (e) => e.name == meta['type'],
+                        orElse: () => CategoryType.expense,
+                    ),
+                    total: entry['total'] as double,
+                );
+            }).toList();
+        } catch (e) {
+            print('[Error fetching category chart data]: $e');
+            rethrow;
+        }
+    }
+
     /// double ====================================================================================
     /// [GET]: Retreive Transaction Amount Sum
-    Future<double> getTransactionAmmountSum() async {
+    Future<double> getAmountSum() async {
         try {
             final response = await _sbdb.from('transactions')
                 .select('amount');
@@ -162,7 +235,7 @@ class TransactionService {
     }
 
     /// [GET]: Retreive Transaction Amount Sum by accountId
-    Future<double> getTransactionAmmountSumByAccountId(String accountId) async {
+    Future<double> getAmountSumByAccountId(String accountId) async {
         try {
             final response = await _sbdb.from('transactions')
                 .select('amount')
@@ -182,7 +255,7 @@ class TransactionService {
     }
 
     /// [GET]: Retreive Transaction Amount Sum by categoryId
-    Future<double> getTransactionAmmountSumByCategoryId(String categoryId) async {
+    Future<double> getAmountSumByCategoryId(String categoryId) async {
         try {
             final response = await _sbdb.from('transactions')
                 .select('amount')
@@ -203,7 +276,7 @@ class TransactionService {
 
     /// int =======================================================================================
     /// [GET]: Retreive Transaction Count by accountId
-    Future<int> getTransactionCountByAccountId(String accountId) async {
+    Future<int> getCountByAccountId(String accountId) async {
         try {
             final response = await _sbdb
                 .from('transactions')
@@ -219,7 +292,7 @@ class TransactionService {
     }
 
     /// [GET]: Retreive Transaction Count by categoryId
-    Future<int> getTransactionCountByCategoryId(String categoryId) async {
+    Future<int> getCountByCategoryId(String categoryId) async {
         try {
             final response = await _sbdb
                 .from('transactions')
@@ -259,7 +332,7 @@ class TransactionService {
     }
 
     /// [PUT]: Update Transaction Amount By Category
-    Future<void> updateTransactionsAmountByCategory(String categoryId) async {
+    Future<void> updateAmountByCategory(String categoryId) async {
         try {
             final response = await _sbdb
                 .from('transactions')

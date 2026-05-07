@@ -140,6 +140,10 @@ class TransactionFormState extends ConsumerState<TransactionForm> {
 
             ref.invalidate(getAllTransactionByPaginationProvider);
             ref.invalidate(getTotalTransactionAmmountByAccountIdProvider);
+            ref.invalidate(dashboardTransactionNotifierProvider);
+            ref.invalidate(transactionListNotifierProvider);
+            ref.invalidate(getTransactionNetTotalsProvider);
+            ref.invalidate(getCategoryAmountSumByMonthAndYearProvider); 
             if (mounted) Navigator.pop(context);
         } catch (e) {
             setState(() => isLoading = false);
@@ -178,6 +182,10 @@ class TransactionFormState extends ConsumerState<TransactionForm> {
             await ref.read(transactionServiceProvider).deleteById(widget.transaction!.id);
             ref.invalidate(getAllTransactionByPaginationProvider);
             ref.invalidate(getTotalTransactionAmmountByAccountIdProvider);
+            ref.invalidate(dashboardTransactionNotifierProvider);
+            ref.invalidate(transactionListNotifierProvider);
+            ref.invalidate(getTransactionNetTotalsProvider);
+            ref.invalidate(getCategoryAmountSumByMonthAndYearProvider); 
             if (mounted) Navigator.pop(context);
         } catch (e) {
             setState(() => isLoading = false);
