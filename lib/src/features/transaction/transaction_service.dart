@@ -1,368 +1,282 @@
 import 'package:budgetfy/src/features/category/category.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../core/connection/supabase_config.dart';
+import 'package:drift/drift.dart';
+import 'package:uuid/uuid.dart';
+import '../../core/local/local_database.dart';
+import '../account/account.dart';
 import '../dashboard/category_chart_data.dart';
-import '../transaction/transaction.dart';
+import '../subcategory/subcategory.dart';
+import 'transaction.dart';
+
 
 class TransactionService {
-    final _sbdb = SupabaseConfig.client;
+    final LocalDatabase _db;
 
-    /// Transaction List ==========================================================================
-    /// [GET]: Retreives Transaction List
-    Future<List<Transaction>> getAllbyPagination({int page = 0, int limit = 20}) async {
-        try {
-            final int from = page * limit;
-            final int to = from + limit - 1;
+    TransactionService(this._db);
 
-            final response = await _sbdb.from('transactions')
-                .select('*, accounts(*), categories(*), subcategories(*)')
-                .order('date', ascending: false)
-                .range(from, to);
+    // =============================================================================================
+    // Private Helpers — Option A join assembly
+    // =============================================================================================
 
-            return (response as List)
-                .map((json) => Transaction.fromJson(json))
-                .toList(); 
-        } catch (e) {
-            print('[Error fetching transaction list]: $e');
-            rethrow;
-        }
+    /// Fetches related Account, Category, Subcategory rows by their IDs and
+    /// assembles them into [Transaction] domain objects.
+    Future<List<Transaction>> _assembleTransactions(
+        List<TransactionData> rows,
+    ) async {
+        if (rows.isEmpty) return [];
+
+        // Collect unique IDs from the page
+        final accountIds     = rows.map((r) => r.accountId).toSet().toList();
+        final categoryIds    = rows.map((r) => r.categoryId).toSet().toList();
+        final subcategoryIds = rows
+            .map((r) => r.subcategoryId)
+            .whereType<String>()
+            .toSet()
+            .toList();
+
+        // Batch fetch related rows — 3 small local queries
+        final accountRows = await (_db.select(_db.accounts)
+            ..where((t) => t.id.isIn(accountIds))
+        ).get();
+
+        final categoryRows = await (_db.select(_db.categories)
+            ..where((t) => t.id.isIn(categoryIds))
+        ).get();
+
+        final subcategoryRows = subcategoryIds.isEmpty
+            ? <SubcategoryData>[]
+            : await (_db.select(_db.subcategories)
+                ..where((t) => t.id.isIn(subcategoryIds))
+            ).get();
+
+        // Build lookup maps for O(1) access
+        final accountMap     = {for (final a in accountRows) a.id: a};
+        final categoryMap    = {for (final c in categoryRows) c.id: c};
+        final subcategoryMap = {for (final s in subcategoryRows) s.id: s};
+
+        // Assemble domain objects
+        return rows.map((row) {
+            final accountRow     = accountMap[row.accountId];
+            final categoryRow    = categoryMap[row.categoryId];
+            final subcategoryRow = row.subcategoryId != null
+                ? subcategoryMap[row.subcategoryId]
+                : null;
+
+            return Transaction(
+                id: row.id,
+                accountId: row.accountId,
+                categoryId: row.categoryId,
+                subcategoryId: row.subcategoryId,
+                amount: row.amount,
+                date: row.date,
+                transactionType: TransactionType.values.firstWhere(
+                    (e) => e.name == row.transactionType,
+                    orElse: () => TransactionType.Default,
+                ),
+                note: row.note,
+                account: accountRow != null
+                    ? Account(
+                        id: accountRow.id,
+                        name: accountRow.name,
+                        color: accountRow.color,
+                    )
+                    : null,
+                category: categoryRow != null
+                    ? Category(
+                        id: categoryRow.id,
+                        name: categoryRow.name,
+                        color: categoryRow.color,
+                        type: CategoryType.values.firstWhere(
+                            (e) => e.name == categoryRow.type,
+                            orElse: () => CategoryType.expense,
+                        ),
+                    )
+                    : null,
+                subcategory: subcategoryRow != null
+                    ? Subcategory(
+                        id: subcategoryRow.id,
+                        categoryId: subcategoryRow.categoryId,
+                        name: subcategoryRow.name,
+                    )
+                    : null,
+            );
+        }).toList();
     }
 
-    /// [GET]: Retrieve Transactions List by Specification
-    Future<List<Transaction>> getBySpecification({String? accountId, String? categoryId, TransactionType? transactionType,
-            DateTime? startDate, DateTime? endDate, int page = 0, int limit = 20,}) async {
-        try {
-            var query = _sbdb.from('transactions')
-                .select('*, accounts(*), categories(*), subcategories(*)');
-            if (accountId != null) {
-                query = query.eq('account_id', accountId);
-            }
-            if (categoryId != null) {
-                query = query.eq('category_id', categoryId);
-            }
-            if (transactionType != null) {
-                query = query.eq('transaction_type', transactionType.name);
-            }
-            if (startDate != null) {
-                query = query.gte('date', startDate.toIso8601String());
-            }
-            if (endDate != null) {
-                query = query.lte('date', endDate.toIso8601String());
-            }
+    // =============================================================================================
+    // Transaction List
+    // =============================================================================================
 
-            final int from = page * limit;
-            final int to = from + limit - 1;
-            
-            final response = await query
-                .order('date', ascending: false)
-                .range(from, to);
-
-            return (response as List)
-                .map((json) => Transaction.fromJson(json))
-                .toList(); 
-        } catch (e) {
-            print('[Error fetching transactions by filter]: $e');
-            rethrow;
-        }
+    /// [GET]: Retreives Transaction List by pagination
+    Future<List<Transaction>> getAllbyPagination({
+        int page = 0, int limit = 20
+    }) async {
+        final rows = await _db.transactionDao.getAllTransactionByPagination(
+            page: page, limit: limit,
+        );
+        return _assembleTransactions(rows);
     }
 
-    /// [GET]: Retrieve Transactions by {Year, Month} with pagination
-    Future<List<Transaction>> getByYearAndMonth({required int year,required int month,
-            int page = 0, int limit = 20}) async {
-        try {
-            final startDate = DateTime(year, month, 1);
-            final endDate = DateTime(year, month + 1, 1).subtract(const Duration(milliseconds: 1));
-
-            final int from = page * limit;
-            final int to = from + limit - 1;
-
-            final response = await _sbdb
-                .from('transactions')
-                .select('*, accounts(*), categories(*), subcategories(*)')
-                .gte('date', startDate.toIso8601String())
-                .lte('date', endDate.toIso8601String())
-                .order('date', ascending: false)
-                .range(from, to);
-
-            return (response as List)
-                .map((json) => Transaction.fromJson(json))
-                .toList();
-        } catch (e) {
-            print('[Error fetching transactions by year/month]: $e');
-            rethrow;
-        }
+    /// [GET]: Retrieve Transactions by {year, month} with pagination
+    Future<List<Transaction>> getByYearAndMonth({
+        required int year, required int month,
+        int page = 0, int limit = 20,
+    }) async {
+        final rows = await _db.transactionDao.getAllTransactionsByYearAndMonthByPagination(
+            year: year, month: month,
+            page: page, limit: limit,
+        );
+        return _assembleTransactions(rows);
     }
 
-    /// [GET]: Retrieve Transactions grouped by month for a given year
-    Future<Map<int, List<Transaction>>> getGroupByMonthByYear(int year) async {
-        try {
-            final startDate = DateTime(year, 1, 1);
-            final endDate = DateTime(year + 1, 1, 1).subtract(const Duration(milliseconds: 1));
+    // =============================================================================================
+    // Transaction
+    // =============================================================================================
 
-            final response = await _sbdb
-                .from('transactions')
-                .select('*, accounts(*), categories(*), subcategories(*)')
-                .gte('date', startDate.toIso8601String())
-                .lte('date', endDate.toIso8601String())
-                .order('date', ascending: false);
-
-            final transactions = (response as List)
-                .map((json) => Transaction.fromJson(json))
-                .toList();
-
-            final Map<int, List<Transaction>> grouped = {};
-            for (final t in transactions) {
-                final month = t.date.month;
-                grouped.putIfAbsent(month, () => []).add(t);
-            }
-
-            return grouped;
-        } catch (e) {
-            print('[Error fetching transactions by year grouped by month]: $e');
-            rethrow;
-        }
+    /// [GET]: Retreive Transaction by {id}
+    Future<Transaction?> getById(String id) async {
+        final row = await _db.transactionDao.getTransactionById(id);
+        if (row == null) return null;
+        final assembled = await _assembleTransactions([row]);
+        return assembled.firstOrNull;
     }
 
-    /// Transaction ===============================================================================
-    /// [GET]: Retreive Transaction by {Id}
-    Future<Transaction> getById(String id) async {
-        try {
-            final response = await _sbdb.from('transactions')
-                .select('*, accounts(*), categories(*), subcategories(*)')
-                .eq('id', id)
-                .single();
-            return Transaction.fromJson(response);
-        } catch (e) {
-            print('[Error fetching transaction]: $e');
-            rethrow;
-        }
-    }
+    // =============================================================================================
+    // Computations
+    // =============================================================================================
 
-    /// Map String double =========================================================================
     /// [GET]: Retreive Net Totals
-    Future<Map<String, double>> getNetTotals() async {
-        try {
-            double netWorth = 0.00;
-            double netIncome = 0.00;
-            double netExpense = 0.00;
-            final response = await _sbdb.from('transactions')
-                .select('amount');
-
-            for (var row in response as List) {
-                final double amount = (row['amount'] as num).toDouble();
-
-                if (amount >= 0) {
-                    netIncome += amount;
-                } else {
-                    netExpense += amount.abs();
-                }
-            }
-            netWorth = netIncome - netExpense;
-            return {
-                'net_worth': double.parse(netWorth.toStringAsFixed(2)),
-                'net_income': double.parse(netIncome.toStringAsFixed(2)),
-                'net_expense': double.parse(netExpense.toStringAsFixed(2))
-            };
-        } catch (e) {
-            print('[Error fetching transaction net totals]: $e');
-            rethrow;
-        }
+    Future<Map<String, double>> getNetTotals() {
+        return _db.transactionDao.getTransactionNetTotals();
     }
 
-    /// [GET]: Retrieve Transaction Category Amount Sum by {month, year}
-    Future<List<CategoryChartData>> getCategoryAmountSumByMonthAndYear({required int month, required int year,}) async {
-        try {
-            final startDate = DateTime(year, month, 1);
-            final endDate = DateTime(year, month + 1, 1)
-                .subtract(const Duration(milliseconds: 1));
-
-            final response = await _sbdb
-                .from('transactions')
-                .select('amount, categories(id, name, color, type)')
-                .gte('date', startDate.toIso8601String())
-                .lte('date', endDate.toIso8601String());
-
-            final Map<String, Map<String, dynamic>> grouped = {};
-
-            for (var row in response as List) {
-                final cat = row['categories'] as Map<String, dynamic>;
-                final id = cat['id'] as String;
-                final amount = (row['amount'] as num).toDouble().abs();
-
-                if (!grouped.containsKey(id)) {
-                    grouped[id] = {'meta': cat, 'total': 0.0};
-                }
-                grouped[id]!['total'] = (grouped[id]!['total'] as double) + amount;
-            }
-
-            return grouped.values.map((entry) {
-                final meta = entry['meta'] as Map<String, dynamic>;
-                return CategoryChartData(
-                    categoryId: meta['id'] as String,
-                    name: meta['name'] as String,
-                    color: meta['color'] as String,
-                    type: CategoryType.values.firstWhere(
-                        (e) => e.name == meta['type'],
-                        orElse: () => CategoryType.expense,
-                    ),
-                    total: entry['total'] as double,
-                );
-            }).toList();
-        } catch (e) {
-            print('[Error fetching category chart data]: $e');
-            rethrow;
-        }
+    /// [GET]: Retreive Transaction Amount Sum by {accountId}
+    Future<double> getAmountSumByAccountId(String accountId) {
+        return _db.transactionDao.getTransactionAmountSumByAccountId(accountId);
     }
 
-    /// double ====================================================================================
-    /// [GET]: Retreive Transaction Amount Sum
-    Future<double> getAmountSum() async {
-        try {
-            final response = await _sbdb.from('transactions')
-                .select('amount');
-
-            double amountSum = 0.0;
-
-            for (var row in response as List) {
-                amountSum += (row['amount'] as num).toDouble();
-            }
-
-            return amountSum;
-        } catch (e) {
-            print('[Error fetching transaction amount sum]: $e');
-            rethrow;
-        }
+    /// [GET]: Retreive Transaction Amount Sum by {categoryId}
+    Future<double> getAmountSumByCategoryId(String categoryId) {
+        return _db.transactionDao.getTransactionAmountSumByCategoryId(categoryId);
     }
 
-    /// [GET]: Retreive Transaction Amount Sum by accountId
-    Future<double> getAmountSumByAccountId(String accountId) async {
-        try {
-            final response = await _sbdb.from('transactions')
-                .select('amount')
-                .eq('account_id', accountId);
-
-            double amountSum = 0.0;
-
-            for (var row in response as List) {
-                amountSum += (row['amount'] as num).toDouble();
-            }
-
-            return amountSum;
-        } catch (e) {
-            print('[Error fetching transaction amount sum by account]: $e');
-            rethrow;
-        }
+    /// [GET]: Retreive Transaction Count by {accountId}
+    Future<int> getCountByAccountId(String accountId) {
+        return _db.transactionDao.getTransactionCountByAccountId(accountId);
     }
 
-    /// [GET]: Retreive Transaction Amount Sum by categoryId
-    Future<double> getAmountSumByCategoryId(String categoryId) async {
-        try {
-            final response = await _sbdb.from('transactions')
-                .select('amount')
-                .eq('category_id', categoryId);
-
-            double amountSum = 0.0;
-
-            for (var row in response as List) {
-                amountSum += (row['amount'] as num).toDouble();
-            }
-
-            return amountSum;
-        } catch (e) {
-            print('[Error fetching transaction amount sum by category]: $e');
-            rethrow;
-        }
+    /// [GET]: Retreive Transaction Count by {categoryId}
+    Future<int> getCountByCategoryId(String categoryId) {
+        return _db.transactionDao.getTransactionCountByCategoryId(categoryId);
     }
 
-    /// int =======================================================================================
-    /// [GET]: Retreive Transaction Count by accountId
-    Future<int> getCountByAccountId(String accountId) async {
-        try {
-            final response = await _sbdb
-                .from('transactions')
-                .select('id')
-                .eq('account_id', accountId)
-                .count(CountOption.exact);
+    /// [GET]: Retreive Transaction Category Amount Sum by {month, year}
+    Future<List<CategoryChartData>> getCategoryAmountSumByMonthAndYear({
+        required int month, required int year,
+    }) async {
+        final start = DateTime(year, month, 1);
+        final end   = DateTime(year, month + 1, 1)
+            .subtract(const Duration(milliseconds: 1));
 
-            return response.count;
-        } catch (e) {
-            print('[Error fetching transaction count]: $e');
-            rethrow;
+        final rows = await (_db.select(_db.transactions)
+            ..where((t) =>
+                t.isDeleted.equals(false) &
+                t.date.isBiggerOrEqualValue(start) &
+                t.date.isSmallerOrEqualValue(end)
+            )
+        ).get();
+
+        if (rows.isEmpty) return [];
+
+        final categoryIds = rows.map((r) => r.categoryId).toSet().toList();
+        final categoryRows = await (_db.select(_db.categories)
+            ..where((t) => t.id.isIn(categoryIds))
+        ).get();
+        final categoryMap = {for (final c in categoryRows) c.id: c};
+
+        final Map<String, double> totals = {};
+        for (final row in rows) {
+            totals[row.categoryId] =
+                (totals[row.categoryId] ?? 0) + row.amount.abs();
         }
+
+        return totals.entries.map((entry) {
+            final cat = categoryMap[entry.key];
+            if (cat == null) return null;
+            return CategoryChartData(
+                categoryId: cat.id,
+                name: cat.name,
+                color: cat.color,
+                type: CategoryType.values.firstWhere(
+                    (e) => e.name == cat.type,
+                    orElse: () => CategoryType.expense,
+                ),
+                total: entry.value,
+            );
+        }).whereType<CategoryChartData>().toList();
     }
 
-    /// [GET]: Retreive Transaction Count by categoryId
-    Future<int> getCountByCategoryId(String categoryId) async {
-        try {
-            final response = await _sbdb
-                .from('transactions')
-                .select('id')
-                .eq('category_id', categoryId)
-                .count(CountOption.exact);
+    // =============================================================================================
+    // Create, Update, Delete
+    // =============================================================================================
 
-            return response.count;
-        } catch (e) {
-            print('[Error fetching transaction count]: $e');
-            rethrow;
-        }
-    }
-    
-    /// void Create, Update, Delete ===============================================================
     /// [POST]: Create Transaction
     Future<void> save(Transaction transaction) async {
-        try {
-            await _sbdb.from('transactions')
-                .insert(transaction.toJson());
-        } catch (e) {
-            print('[Error creating transaction]: $e');
-            rethrow;
-        }
+        final transactionId = transaction.id.isEmpty
+        ? const Uuid().v4()
+        : transaction.id;
+
+        await _db.transactionDao.saveTransaction(TransactionsCompanion(
+            id: Value(transactionId),
+            accountId: Value(transaction.accountId),
+            categoryId: Value(transaction.categoryId),
+            subcategoryId: Value(transaction.subcategoryId),
+            amount: Value(transaction.amount),
+            date: Value(transaction.date),
+            transactionType: Value(transaction.transactionType.name),
+            note: Value(transaction.note),
+            updatedAt: Value(DateTime.now()),
+            pendingSync: const Value(true),
+        ));
     }
 
     /// [PUT]: Update Transaction
     Future<void> update(Transaction transaction) async {
-        try {
-            await _sbdb.from('transactions')
-                .update(transaction.toJson())
-                .eq('id', transaction.id);
-        } catch (e) {
-            print('[Error updating transaction]: $e');
-            rethrow;
-        }
+        await _db.transactionDao.updateTransaction(TransactionsCompanion(
+            id: Value(transaction.id),
+            accountId: Value(transaction.accountId),
+            categoryId: Value(transaction.categoryId),
+            subcategoryId: Value(transaction.subcategoryId),
+            amount: Value(transaction.amount),
+            date: Value(transaction.date),
+            transactionType: Value(transaction.transactionType.name),
+            note: Value(transaction.note),
+            updatedAt: Value(DateTime.now()),
+            pendingSync: const Value(true),
+        ));
     }
 
-    /// [PUT]: Update Transaction Amount By Category
+    /// [PUT]: Update Transaction Amount by {categoryId}
+    /// Called when a category type changes (income ↔ expense) — inverts amounts
     Future<void> updateAmountByCategory(String categoryId) async {
-        try {
-            final response = await _sbdb
-                .from('transactions')
-                .select('id, amount')
-                .eq('category_id', categoryId);
+        final rows = await (_db.select(_db.transactions)
+            ..where((t) =>
+                t.categoryId.equals(categoryId) &
+                t.isDeleted.equals(false)
+            )
+        ).get();
 
-            final transactions = response as List;
-            if (transactions.isEmpty) return;
-            for (var row in transactions) {
-                final double currentAmount = (row['amount'] as num).toDouble();
-                await _sbdb
-                    .from('transactions')
-                    .update({'amount': currentAmount * -1})
-                    .eq('id', row['id']);
-            }
-        } catch (e) {
-            print('[Error inverting transaction amounts]: $e');
-            rethrow;
+        for (final row in rows) {
+            await _db.transactionDao.updateTransaction(TransactionsCompanion(
+                id: Value(row.id),
+                amount: Value(row.amount * -1),
+                updatedAt: Value(DateTime.now()),
+                pendingSync: const Value(true),
+            ));
         }
     }
 
-    /// [DELETE]: Delete Transaction
+    /// [DELETE]: Soft delete Transaction by {id}
     Future<void> deleteById(String id) async {
-        try {
-            await _sbdb.from('transactions')
-                .delete()
-                .eq('id', id);
-        } catch (e) {
-            print('[Error deleting transaction]: $e');
-            rethrow;
-        }
+        await _db.transactionDao.softDeleteTransactionById(id);
     }
 }

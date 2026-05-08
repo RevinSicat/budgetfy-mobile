@@ -1,29 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/local/local_database_provider.dart';
 import '../dashboard/category_chart_data.dart';
 import 'transaction.dart';
 import 'transaction_service.dart';
 
-class TransactionFilter {
-    final String? accountId;
-    final String? categoryId;
-    final TransactionType? transactionType;
-    final DateTime? startDate;
-    final DateTime? endDate;
-    final int page;
-    final int limit;
-
-    const TransactionFilter({
-        this.accountId,
-        this.categoryId,
-        this.transactionType,
-        this.startDate,
-        this.endDate,
-        this.page = 0,
-        this.limit = 20,
-    });
-}
-
-/// Transaction List (transaction_screen.dart) — full list, all-time, paginated ===================
+final transactionServiceProvider = Provider<TransactionService>((ref) {
+    final db = ref.watch(localDatabaseProvider);
+    return TransactionService(db);
+});
 
 class TransactionListNotifier extends AutoDisposeAsyncNotifier<List<Transaction>> {
     int _page = 0;
@@ -177,30 +161,31 @@ Map<DateTime, List<Transaction>> _groupByDate(List<Transaction> transactions) {
     return grouped;
 }
 
-/// Service Provider ==============================================================================
-
-final transactionServiceProvider = Provider<TransactionService>((ref) {
-    return TransactionService();
-});
-
 /// Misc FutureProviders ==========================================================================
+
+class TransactionFilter {
+    final String? accountId;
+    final String? categoryId;
+    final TransactionType? transactionType;
+    final DateTime? startDate;
+    final DateTime? endDate;
+    final int page;
+    final int limit;
+
+    const TransactionFilter({
+        this.accountId,
+        this.categoryId,
+        this.transactionType,
+        this.startDate,
+        this.endDate,
+        this.page = 0,
+        this.limit = 20,
+    });
+}
 
 final getAllTransactionByPaginationProvider = FutureProvider.family<List<Transaction>, TransactionFilter>((ref, filter) async {
     final service = ref.read(transactionServiceProvider);
     return service.getAllbyPagination(page: filter.page, limit: filter.limit);
-});
-
-final getTransactionBySpecificationProvider = FutureProvider.family<List<Transaction>, TransactionFilter>((ref, filter) async {
-    final service = ref.read(transactionServiceProvider);
-    return service.getBySpecification(
-        accountId: filter.accountId,
-        categoryId: filter.categoryId,
-        transactionType: filter.transactionType,
-        startDate: filter.startDate,
-        endDate: filter.endDate,
-        page: filter.page,
-        limit: filter.limit,
-    );
 });
 
 final getCategoryAmountSumByMonthAndYearProvider = FutureProvider.autoDispose<List<CategoryChartData>>((ref) async {
@@ -214,12 +199,9 @@ final getCategoryAmountSumByMonthAndYearProvider = FutureProvider.autoDispose<Li
 
 final getTransactionByIdProvider = FutureProvider.family<Transaction, String>((ref, id) async {
     final service = ref.read(transactionServiceProvider);
-    return service.getById(id);
-});
-
-final getTransactionAmountSumProvider = FutureProvider<double>((ref) async {
-    final service = ref.read(transactionServiceProvider);
-    return service.getAmountSum();
+    final result = await service.getById(id);
+    if (result == null) throw Exception('Transaction not found: $id');
+    return result;
 });
 
 final getTotalTransactionAmmountByAccountIdProvider = FutureProvider.family<double, String>((ref, accountId) async {

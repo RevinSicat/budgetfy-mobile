@@ -1,74 +1,63 @@
-import '../../core/connection/supabase_config.dart';
+import 'package:drift/drift.dart';
+import 'package:uuid/uuid.dart';
+import '../../core/local/local_database.dart'; 
 import '../transaction/transaction_service.dart';
-import '../category/category.dart';
+import 'category.dart';
 
 class CategoryService {
-    final _sbdb = SupabaseConfig.client;
+    final LocalDatabase _db;
 
-    /// Category List =============================================================================
-    /// [GET]: Retreives Category List
+    CategoryService(this._db);
+
+    /// [GET]: Retrieves Category List
     Future<List<Category>> getAllList() async {
-        try {
-            final response = await _sbdb.from('categories')
-                .select()
-                .order('name', ascending: true);
-
-            return (response as List)
-                .map((json) => Category.fromJson(json))
-                .toList();
-        } catch (e) {
-            print('[Error fetching category list]: $e');
-            rethrow;
-        }
+        final rows = await _db.categoryDao.getAllCategories();
+        return rows.map((row) => Category(
+            id: row.id,
+            name: row.name,
+            color: row.color,
+            type: CategoryType.values.firstWhere(
+                (e) => e.name == row.type,
+                orElse: () => CategoryType.expense,
+            ),
+        )).toList();
     }
 
-    /// void Create, Update, Delete ===============================================================
     /// [POST]: Create Category
     Future<void> save(Category category) async {
-        try {
-            await _sbdb.from('categories')
-                .insert(category.toJson());
-        } catch (e) {
-            print('[Error creating category]: $e');
-            rethrow;
-        }
+        final categoryId = category.id.isEmpty
+        ? const Uuid().v4()
+        : category.id;
+
+        await _db.categoryDao.saveCategory(CategoriesCompanion(
+            id: Value(categoryId),
+            name: Value(category.name),
+            color: Value(category.color),
+            type: Value(category.type.name),
+            updatedAt: Value(DateTime.now()),
+        ));
     }
 
     /// [PUT]: Update Category
     Future<void> update(Category category) async {
-        try {
-            final prevCategory = await _sbdb
-                .from('categories')
-                .select('type')
-                .eq('id', category.id)
-                .single();
-            
-            final prevCategoryType = prevCategory['type'] as String;
-            final bool isTypeChanged = prevCategoryType != category.type.name;
+        final prev = await _db.categoryDao.getCategoryById(category.id);
+        final isTypeChanged = prev != null && prev.type != category.type.name;
 
-            await _sbdb
-                .from('categories')
-                .update(category.toJson())
-                .eq('id', category.id);
+        await _db.categoryDao.updateCategory(CategoriesCompanion(
+            id: Value(category.id),
+            name: Value(category.name),
+            color: Value(category.color),
+            type: Value(category.type.name),
+            updatedAt: Value(DateTime.now()),
+        ));
 
-            if (isTypeChanged) {
-                await TransactionService().updateAmountByCategory(category.id);
-            }
-        } catch (e) {
-            print('[Error updating category]: $e');
-            rethrow;
+        if (isTypeChanged) {
+            await TransactionService(_db).updateAmountByCategory(category.id);
         }
     }
 
-    /// [DELETE]: Delete Category
+    /// [DELETE]: Soft delete Category by {id}
     Future<void> deleteById(String id) async {
-        try {
-            await _sbdb.from('categories')
-                .delete()
-                .eq('id', id);
-        } catch (e) {
-            print('[Error deleting category]: $e');
-            rethrow;
-        }
+        await _db.categoryDao.softDeleteCategoryById(id);
     }
 }

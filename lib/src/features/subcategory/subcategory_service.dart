@@ -1,75 +1,54 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../core/connection/supabase_config.dart';
+import 'package:drift/drift.dart';
+import 'package:uuid/uuid.dart';
+import '../../core/local/local_database.dart';
 import 'subcategory.dart';
 
 class SubcategoryService {
-    final _sbdb = SupabaseConfig.client;
+    final LocalDatabase _db;
 
-    /// Subcategory List ==========================================================================
-    /// [GET]: Retreive Subcategories by category id
+    SubcategoryService(this._db);
+
+    /// [GET]: Retreive Subcategories by {categoryId}
     Future<List<Subcategory>> getByCategoryId(String categoryId) async {
-        try {
-            final response = await _sbdb
-                .from('subcategories')
-                .select()
-                .eq('category_id', categoryId)                         
-                .order('name', ascending: true);
-            return (response as List)
-                .map((json) => Subcategory.fromJson(json))
-                .toList();
-        } catch (e) {
-            print('[Error fetching subcategories]: $e');
-            rethrow;
-        }
+        final rows = await _db.subcategoryDao.getSubcategoriesByCategoryId(categoryId);
+        return rows.map((row) => Subcategory(
+            id: row.id,
+            categoryId: row.categoryId,
+            name: row.name,
+        )).toList();
     }
 
-    /// int =======================================================================================
-    /// [GET]: Retreive Subcategory Count by categoryId
-    Future<int> getSubcategoryCountByCategoryId(String categoryId) async {
-        try {
-            final response = await _sbdb
-                .from('subcategories')
-                .select('id')
-                .eq('category_id', categoryId)
-                .count(CountOption.exact);
-
-            return response.count;
-        } catch (e) {
-            print('[Error fetching subcategory count]: $e');
-            rethrow;
-        }
+    /// [GET]: Retreive Subcategory Count by {categoryId}
+    Future<int> getSubcategoryCountByCategoryId(String categoryId) {
+        return _db.subcategoryDao.getSubcategoriesCountByCategoryId(categoryId);
     }
 
-    /// void Create, Update, Delete ===============================================================
-    /// [POST]: Create subcategory
+    /// [POST]: Create Subcategory
     Future<void> save(Subcategory subcategory) async {
-        try {
-            await _sbdb.from('subcategories').insert(subcategory.toJson());
-        } catch (e) {
-            print('[Error creating subcategory]: $e');
-            rethrow;
-        }
+        final subcategoryId = subcategory.id.isEmpty
+        ? const Uuid().v4()
+        : subcategory.id;
+
+        await _db.subcategoryDao.saveSubcategory(SubcategoriesCompanion(
+            id: Value(subcategoryId),
+            categoryId: Value(subcategory.categoryId),
+            name: Value(subcategory.name),
+            updatedAt: Value(DateTime.now()),
+        ));
     }
 
-    /// [PUT]: Update subcategory
+    /// [PUT]: Update Subcategory
     Future<void> update(Subcategory subcategory) async {
-        try {
-            await _sbdb.from('subcategories')
-                .update(subcategory.toJson())
-                .eq('id', subcategory.id);
-        } catch (e) {
-            print('[Error updating subcategory]: $e');
-            rethrow;
-        }
+        await _db.subcategoryDao.updateSubcategory(SubcategoriesCompanion(
+            id: Value(subcategory.id),
+            categoryId: Value(subcategory.categoryId),
+            name: Value(subcategory.name),
+            updatedAt: Value(DateTime.now()),
+        ));
     }
 
-    /// [DELETE]: Delete subcategory
+    /// [DELETE]: Soft delete Subcategory by {id}
     Future<void> deleteById(String id) async {
-        try {
-            await _sbdb.from('subcategories').delete().eq('id', id);
-        } catch (e) {
-            print('[Error deleting subcategory]: $e');
-            rethrow;
-        }
+        await _db.subcategoryDao.softDeleteSubcategoryById(id);
     }
 }
