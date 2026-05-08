@@ -4,36 +4,71 @@ CREATE TYPE transaction_type AS ENUM ('Default', 'Upcoming', 'Subscription', 'Le
 
 -- 2. Create Accounts Table
 CREATE TABLE accounts (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name TEXT NOT NULL,
-    color TEXT NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    name        TEXT        NOT NULL,
+    color       TEXT        NOT NULL,
+    created_at  TIMESTAMPTZ DEFAULT now(),
+    updated_at  TIMESTAMPTZ DEFAULT now(),
+    is_deleted  BOOLEAN     DEFAULT false
 );
 
 -- 3. Create Categories Table
 CREATE TABLE categories (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    name TEXT NOT NULL,
-    color TEXT NOT NULL,
-    type category_type NOT NULL,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    id          UUID            PRIMARY KEY DEFAULT gen_random_uuid(),
+    name        TEXT            NOT NULL,
+    color       TEXT            NOT NULL,
+    type        category_type   NOT NULL,
+    created_at  TIMESTAMPTZ     DEFAULT now(),
+    updated_at  TIMESTAMPTZ     DEFAULT now(),
+    is_deleted  BOOLEAN         DEFAULT false
 );
 
--- 4. CREATE TABLE subcategories (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  category_id UUID NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
-  name TEXT NOT NULL
+CREATE TABLE subcategories (
+    id          UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
+    category_id UUID        NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+    name        TEXT        NOT NULL,
+    created_at  TIMESTAMPTZ DEFAULT now(),
+    updated_at  TIMESTAMPTZ DEFAULT now(),
+    is_deleted  BOOLEAN     DEFAULT false
 );
 
 -- 5. Create Transactions Table
 CREATE TABLE transactions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
-    category_id UUID NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
-    subcategory_id UUID REFERENCES subcategories(id) ON DELETE SET NULL,
-    amount NUMERIC NOT NULL,
-    date TIMESTAMPTZ NOT NULL,
+    id               UUID             PRIMARY KEY DEFAULT gen_random_uuid(),
+    account_id       UUID             NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+    category_id      UUID             NOT NULL REFERENCES categories(id) ON DELETE CASCADE,
+    subcategory_id   UUID             REFERENCES subcategories(id) ON DELETE SET NULL,
+    amount           NUMERIC          NOT NULL,
+    date             TIMESTAMPTZ      NOT NULL,
     transaction_type transaction_type NOT NULL DEFAULT 'Default',
-    note TEXT DEFAULT '',
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    note             TEXT             DEFAULT '',
+    created_at       TIMESTAMPTZ      DEFAULT now(),
+    updated_at       TIMESTAMPTZ      DEFAULT now(),
+    is_deleted       BOOLEAN          DEFAULT false
 );
+
+
+-- 6. Auto-update updated_at on every row change
+CREATE OR REPLACE FUNCTION update_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = now();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE TRIGGER trg_accounts_updated_at
+    BEFORE UPDATE ON accounts
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE OR REPLACE TRIGGER trg_categories_updated_at
+    BEFORE UPDATE ON categories
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE OR REPLACE TRIGGER trg_subcategories_updated_at
+    BEFORE UPDATE ON subcategories
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+
+CREATE OR REPLACE TRIGGER trg_transactions_updated_at
+    BEFORE UPDATE ON transactions
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at();
