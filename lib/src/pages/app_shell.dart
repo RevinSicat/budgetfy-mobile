@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../src/core/sync/sync_provider.dart';
+import '../../src/features/account/account_provider.dart';
+import '../../src/features/category/category_provider.dart';
+import '../../src/features/transaction/transaction_provider.dart';
 import 'dashboard/dashboard_screen.dart';
 import 'transaction/transaction_screen.dart';
 import 'account/account_screen.dart';
@@ -47,12 +51,29 @@ class AppShell extends ConsumerWidget {
         )
     ];
 
+    Future<void> _onRefresh(WidgetRef ref) async {
+        await ref.read(syncProvider.notifier).syncAll();
+
+        ref.invalidate(getAllAccountListProvider);
+        ref.invalidate(getAllCategoryListProvider);
+        ref.invalidate(dashboardTransactionNotifierProvider);
+        ref.invalidate(transactionListNotifierProvider);
+        ref.invalidate(getTransactionNetTotalsProvider);
+        ref.invalidate(getCategoryAmountSumByMonthAndYearProvider);
+        ref.invalidate(getTotalTransactionAmmountByAccountIdProvider);
+        ref.invalidate(getTransactionAmmountSumByCategoryIdProvider);
+    }
+
     @override
     Widget build(BuildContext context, WidgetRef ref) {
         final selectedIndex = ref.watch(selectedIndexProvider);
 
         return Scaffold(
-            body: appScreens[selectedIndex],
+            body: RefreshIndicator(
+                onRefresh: () => _onRefresh(ref),
+                displacement: 80,
+                child: appScreens[selectedIndex]
+            ),
             bottomNavigationBar: NavigationBar(
                 selectedIndex: selectedIndex,
                 onDestinationSelected: (index) =>
