@@ -1,3 +1,4 @@
+import 'package:budgetfy/src/pages/dashboard/widgets/category_donut_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/account/account_provider.dart';
@@ -171,15 +172,35 @@ class DashboardScreenState extends ConsumerState<DashboardScreen> {
                                     )
                                 )
                             ),
-                            /* ===================================================================
+                            /* ====================================================================
                             Net Totals Cards
-                            =================================================================== */
+                            ==================================================================== */
                             const SizedBox(height: 12),
                             const Padding(
                                 padding: EdgeInsets.symmetric(horizontal: 8),
                                 child: NetTotalsWidget()
                             ),
-
+                            /* ====================================================================
+                            Transaction Pie Chart Header
+                            ==================================================================== */
+                            const SizedBox(height: 12),
+                            Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                child: Text(
+                                    'Transaction Pie Chart',
+                                    style: theme.textTheme.titleLarge?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                    )
+                                )
+                            ),
+                            /* ====================================================================
+                            Transaction Category Pie Chart Card
+                            ==================================================================== */
+                            const SizedBox(height: 12),
+                            Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                child: const CategoryDonutChart()
+                            ),
                             const SizedBox(height: 80)
                         ]
                     )

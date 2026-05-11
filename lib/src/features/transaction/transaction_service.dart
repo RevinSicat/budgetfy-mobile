@@ -128,6 +128,29 @@ class TransactionService {
         return _assembleTransactions(rows);
     }
 
+    /// [GET]: Retrieve Transactions by {categoryId, month, year}
+    Future<List<Transaction>> getByCategoryAndMonth({
+        required String categoryId, 
+        required int month,
+        required int year,
+    }) async {
+        final start = DateTime(year, month, 1);
+        final end   = DateTime(year, month + 1, 1)
+            .subtract(const Duration(milliseconds: 1));
+
+        final rows = await (_db.select(_db.transactions)
+            ..where((t) =>
+                t.categoryId.equals(categoryId) &
+                t.isDeleted.equals(false) &
+                t.date.isBiggerOrEqualValue(start) &
+                t.date.isSmallerOrEqualValue(end)
+            )
+            ..orderBy([(t) => OrderingTerm.desc(t.date)])
+        ).get();
+
+        return _assembleTransactions(rows);
+    }
+
     // =============================================================================================
     // Transaction
     // =============================================================================================
