@@ -159,27 +159,6 @@ class DashboardScreenState extends ConsumerState<DashboardScreen> {
                                     color: theme.dividerColor.withOpacity(0.2)
                                 )
                             ),
-                            /* ===================================================================
-                            Net Totals Header
-                            =================================================================== */
-                            const SizedBox(height: 12),
-                            Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
-                                child: Text(
-                                    'Net Totals',
-                                    style: theme.textTheme.titleLarge?.copyWith(
-                                        fontWeight: FontWeight.bold
-                                    )
-                                )
-                            ),
-                            /* ====================================================================
-                            Net Totals Cards
-                            ==================================================================== */
-                            const SizedBox(height: 12),
-                            const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 8),
-                                child: NetTotalsWidget()
-                            ),
                             /* ====================================================================
                             Transaction Pie Chart Header
                             ==================================================================== */
@@ -200,6 +179,36 @@ class DashboardScreenState extends ConsumerState<DashboardScreen> {
                             Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 8),
                                 child: const CategoryDonutChart()
+                            ),
+                            const SizedBox(height: 12),
+                            Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                child: Divider(
+                                    height: 24,
+                                    thickness: 1,
+                                    color: theme.dividerColor.withOpacity(0.2)
+                                )
+                            ),
+                            /* ===================================================================
+                            Net Totals Header
+                            =================================================================== */
+                            const SizedBox(height: 12),
+                            Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                child: Text(
+                                    'Net Totals',
+                                    style: theme.textTheme.titleLarge?.copyWith(
+                                        fontWeight: FontWeight.bold
+                                    )
+                                )
+                            ),
+                            /* ====================================================================
+                            Net Totals Cards
+                            ==================================================================== */
+                            const SizedBox(height: 12),
+                            const Padding(
+                                padding: EdgeInsets.symmetric(horizontal: 8),
+                                child: NetTotalsWidget()
                             ),
                             const SizedBox(height: 80)
                         ]

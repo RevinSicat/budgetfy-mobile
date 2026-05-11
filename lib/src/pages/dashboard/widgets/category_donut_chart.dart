@@ -22,7 +22,7 @@ class CategoryDonutChartState extends ConsumerState<CategoryDonutChart> {
     CategoryType selectedType = CategoryType.expense;
     int? touchedIndex;
 
-    static const _monthNames = [
+    static const monthNames = [
         'January', 'February', 'March', 'April',
         'May', 'June', 'July', 'August',
         'September', 'October', 'November', 'December',
@@ -39,7 +39,7 @@ class CategoryDonutChartState extends ConsumerState<CategoryDonutChart> {
     List<DropdownMenuItem<int>> get monthItems => List.generate(12, (i) =>
         DropdownMenuItem(
             value: i + 1, 
-            child: Text(_monthNames[i])
+            child: Text(monthNames[i])
         )
     );
 
@@ -148,6 +148,7 @@ class CategoryDonutChartState extends ConsumerState<CategoryDonutChart> {
                             }
 
                             final safeIndex = (touchedIndex != null &&
+                                    touchedIndex! >= 0 &&
                                     touchedIndex! < filtered.length)
                                 ? touchedIndex
                                 : null;
@@ -167,7 +168,7 @@ class CategoryDonutChartState extends ConsumerState<CategoryDonutChart> {
                                     ),
                                     /// Category Summary ==========================================
                                     if (safeIndex != null) ...[
-                                        const SizedBox(height: AppSpacing.md),
+                                        const SizedBox(height: AppSpacing.lg),
                                         CategorySummaryRow(
                                             item: filtered[safeIndex],
                                             total: filtered.fold(
@@ -238,11 +239,15 @@ class ChartRow extends StatelessWidget {
                                             }
                                             if (response == null 
                                                 || response.touchedSection == null) {
-                                                return;
+                                                    return;
                                             }
-                                            onTouch(response
-                                                .touchedSection!
-                                                .touchedSectionIndex);
+                                            
+                                            final index = response.touchedSection!.touchedSectionIndex;
+                                            if (index < 0) {
+                                                return; 
+                                            }
+                                            
+                                            onTouch(index);
                                         }
                                     ),
                                     startDegreeOffset: -90,
@@ -640,6 +645,9 @@ class TransactionRow extends StatelessWidget {
         final accountColor = transaction.account != null
             ? hexToColor(transaction.account!.color)
             : Colors.grey;
+        final categoryColor = transaction.category != null
+            ? hexToColor(transaction.category!.color)
+            : Colors.grey;
 
         return GestureDetector(
             onTap: () => showModalBottomSheet(
@@ -690,26 +698,54 @@ class TransactionRow extends StatelessWidget {
                             child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                    Container(
-                                        padding: const EdgeInsets.symmetric(
-                                            horizontal: 6, 
-                                            vertical: 2
-                                        ),
-                                        decoration: BoxDecoration(
-                                            color: accountColor.withOpacity(0.12),
-                                            borderRadius: BorderRadius.circular(6),
-                                            border: Border.all(
-                                                color: accountColor.withOpacity(0.4)
+                                    Row(
+                                        children: [
+                                            if (transaction.subcategory?.name != null) ...[
+                                                Container(
+                                                    padding: const EdgeInsets.symmetric(
+                                                        horizontal: 6, 
+                                                        vertical: 2
+                                                    ),
+                                                    decoration: BoxDecoration(
+                                                        color: categoryColor.withOpacity(0.12),
+                                                        borderRadius: BorderRadius.circular(6),
+                                                        border: Border.all(
+                                                            color: categoryColor.withOpacity(0.4)
+                                                        )
+                                                    ),
+                                                    child: Text(
+                                                        transaction.subcategory?.name ?? '—',
+                                                        style: theme.textTheme.bodyMedium?.copyWith(
+                                                            fontSize: AppFontSize.caption,
+                                                            fontWeight: AppFontWeight.semiBold,
+                                                            color: categoryColor
+                                                        )
+                                                    )
+                                                ),
+                                                const SizedBox(width: AppSpacing.sm)
+                                            ],
+                                            Container(
+                                                padding: const EdgeInsets.symmetric(
+                                                    horizontal: 6, 
+                                                    vertical: 2
+                                                ),
+                                                decoration: BoxDecoration(
+                                                    color: accountColor.withOpacity(0.12),
+                                                    borderRadius: BorderRadius.circular(6),
+                                                    border: Border.all(
+                                                        color: accountColor.withOpacity(0.4)
+                                                    )
+                                                ),
+                                                child: Text(
+                                                    transaction.account?.name ?? '—',
+                                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                                        fontSize: AppFontSize.caption,
+                                                        fontWeight: AppFontWeight.semiBold,
+                                                        color: accountColor
+                                                    )
+                                                )
                                             )
-                                        ),
-                                        child: Text(
-                                            transaction.account?.name ?? '—',
-                                            style: theme.textTheme.bodyMedium?.copyWith(
-                                                fontSize: AppFontSize.caption,
-                                                fontWeight: AppFontWeight.semiBold,
-                                                color: accountColor
-                                            )
-                                        )
+                                        ]
                                     ),
                                     if (transaction.note.isNotEmpty) ...[
                                         const SizedBox(height: 2),
@@ -820,7 +856,7 @@ class Chip extends StatelessWidget {
                         color: isSelected ? activeColor : theme.disabledColor,
                         width: isSelected ? 2 : 1
                     ),
-                    borderRadius: BorderRadius.circular(AppRadius.full)
+                    borderRadius: BorderRadius.circular(AppRadius.sm)
                 ),
                 child: Text(
                     label,

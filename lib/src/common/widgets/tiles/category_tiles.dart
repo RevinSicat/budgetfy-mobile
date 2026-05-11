@@ -84,6 +84,15 @@ class CategoryTileState extends ConsumerState<CategoryTile>
                         ),
                         child: Row(
                             children: [
+                                Container(
+                                    width: 20,
+                                    height: 20,
+                                    decoration: BoxDecoration(
+                                        color: hexToColor(category.color),
+                                        shape: BoxShape.circle,
+                                    ),
+                                ),
+                                const SizedBox(width: 12),
                                 Expanded(
                                     child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,7 +106,6 @@ class CategoryTileState extends ConsumerState<CategoryTile>
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis
                                             ),
-                                            const SizedBox(height: 4),
                                             subcategoryCount.when(
                                                 loading: () => const SizedBox(
                                                     height: 10, width: 10, 
