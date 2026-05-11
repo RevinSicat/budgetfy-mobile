@@ -21,8 +21,8 @@ class AppShell extends ConsumerWidget {
 
     static const List<NavigationDestination> destinations = [
         NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard),
+            icon: Icon(Icons.pie_chart_outline),
+            selectedIcon: Icon(Icons.pie_chart),
             label: 'Dashboard'
         ),
         NavigationDestination(

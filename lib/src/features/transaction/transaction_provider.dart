@@ -183,17 +183,63 @@ class TransactionFilter {
     });
 }
 
+class MonthYearFilter {
+    final int month;
+    final int year;
+
+    const MonthYearFilter({required this.month, required this.year});
+
+    @override
+    bool operator ==(Object other) =>
+        other is MonthYearFilter &&
+        other.month == month &&
+        other.year == year;
+
+    @override
+    int get hashCode => Object.hash(month, year);
+}
+
+class CategoryMonthFilter {
+    final String categoryId;
+    final int month;
+    final int year;
+
+    const CategoryMonthFilter({
+        required this.categoryId,
+        required this.month,
+        required this.year,
+    });
+
+    @override
+    bool operator ==(Object other) =>
+        other is CategoryMonthFilter &&
+        other.categoryId == categoryId &&
+        other.month == month &&
+        other.year == year;
+
+    @override
+    int get hashCode => Object.hash(categoryId, month, year);
+}
+
 final getAllTransactionByPaginationProvider = FutureProvider.family<List<Transaction>, TransactionFilter>((ref, filter) async {
     final service = ref.read(transactionServiceProvider);
     return service.getAllbyPagination(page: filter.page, limit: filter.limit);
 });
 
-final getCategoryAmountSumByMonthAndYearProvider = FutureProvider.autoDispose<List<CategoryChartData>>((ref) async {
-    final now = DateTime.now();
+final getCategoryAmountSumByMonthAndYearProvider = FutureProvider.autoDispose.family<List<CategoryChartData>, MonthYearFilter>((ref, filter) async {
     final service = ref.read(transactionServiceProvider);
     return service.getCategoryAmountSumByMonthAndYear(
-        month: now.month,
-        year: now.year
+        month: filter.month,
+        year: filter.year,
+    );
+});
+
+final getTransactionsByCategoryAndMonthProvider = FutureProvider.autoDispose.family<List<Transaction>, CategoryMonthFilter>((ref, filter) async {
+    final service = ref.read(transactionServiceProvider);
+    return service.getByCategoryAndMonth(
+        categoryId: filter.categoryId,
+        month: filter.month,
+        year: filter.year,
     );
 });
 
