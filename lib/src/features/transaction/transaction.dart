@@ -2,7 +2,7 @@ import '../account/account.dart';
 import '../category/category.dart';
 import '../subcategory/subcategory.dart';
 
-enum TransactionType { Default, Upcoming, Subscription, Lent, Borrowed }
+enum TransactionType { Default, Upcoming, Recurring, Lent, Borrowed }
 
 class Transaction {
     /// [Fields]:

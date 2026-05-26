@@ -5,6 +5,7 @@ import 'daos/category_dao.dart';
 import 'daos/subcategory_dao.dart';
 import 'daos/transaction_dao.dart';
 import 'daos/sync_meta_dao.dart';
+import 'daos/outbox_dao.dart';
 
 part 'local_database.g.dart';
 
@@ -70,6 +71,20 @@ class Transactions extends Table {
     Set<Column> get primaryKey => {id};
 }
 
+@DataClassName('OutboxData')
+class Outbox extends Table {
+    TextColumn get id         => text()();
+    TextColumn get tblName  => text()();
+    TextColumn get recordId   => text()();
+    TextColumn get operation  => text()();
+    TextColumn get payload    => text()();
+    DateTimeColumn get createdAt => dateTime()();
+    BoolColumn get synced     => boolean().withDefault(const Constant(false))();
+
+    @override
+    Set<Column> get primaryKey => {id};
+}
+
 /// ===============================================================================================
 /// Sync Meta Table
 /// ===============================================================================================
@@ -87,23 +102,32 @@ class SyncMeta extends Table {
 /// ===============================================================================================
 
 @DriftDatabase(
-    tables: [Accounts, Categories, Subcategories, Transactions, SyncMeta],
-    daos: [AccountDao, CategoryDao, SubcategoryDao, TransactionDao, SyncMetaDao],
+    tables: [Accounts, Categories, Subcategories, Transactions, SyncMeta, Outbox],
+    daos: [AccountDao, CategoryDao, SubcategoryDao, TransactionDao, SyncMetaDao, OutboxDao]
 )
 class LocalDatabase extends _$LocalDatabase {
     LocalDatabase() : super(_openConnection());
 
     @override
-    int get schemaVersion => 1;
+    int get schemaVersion => 2; // bump this from 1 to 2
+
+    @override
+    MigrationStrategy get migration => MigrationStrategy(
+        onUpgrade: (migrator, from, to) async {
+            if (from < 2) {
+                await migrator.createTable(outbox); // create the new table
+            }
+        },
+    );
 
     static QueryExecutor _openConnection() {
         return driftDatabase(name: 'budgetfy_local');
     }
 
-    // DAO accessors — used as db.accountDao.getAllAccounts() etc.
     AccountDao     get accountDao     => AccountDao(this);
     CategoryDao    get categoryDao    => CategoryDao(this);
     SubcategoryDao get subcategoryDao => SubcategoryDao(this);
     TransactionDao get transactionDao => TransactionDao(this);
     SyncMetaDao    get syncMetaDao    => SyncMetaDao(this);
+    OutboxDao      get outboxDao      => OutboxDao(this);
 }

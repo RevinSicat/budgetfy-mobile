@@ -2,6 +2,7 @@ import 'package:budgetfy/src/features/category/category.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/local/local_database.dart';
+import '../../core/sync/sync_service.dart';
 import '../account/account.dart';
 import '../dashboard/category_chart_data.dart';
 import '../subcategory/subcategory.dart';
@@ -10,8 +11,9 @@ import 'transaction.dart';
 
 class TransactionService {
     final LocalDatabase _db;
+    final SyncService _syncService;
 
-    TransactionService(this._db);
+    TransactionService(this._db) : _syncService = SyncService(_db);
 
     // =============================================================================================
     // Private Helpers — Option A join assembly
@@ -245,8 +247,9 @@ class TransactionService {
     /// [POST]: Create Transaction
     Future<void> save(Transaction transaction) async {
         final transactionId = transaction.id.isEmpty
-        ? const Uuid().v4()
-        : transaction.id;
+            ? const Uuid().v4()
+            : transaction.id;
+        final updatedAt = DateTime.now(); // single source of truth
 
         await _db.transactionDao.saveTransaction(TransactionsCompanion(
             id: Value(transactionId),
@@ -257,13 +260,33 @@ class TransactionService {
             date: Value(transaction.date),
             transactionType: Value(transaction.transactionType.name),
             note: Value(transaction.note),
-            updatedAt: Value(DateTime.now()),
+            updatedAt: Value(updatedAt),
             pendingSync: const Value(true),
         ));
+
+        await _syncService.writeToOutbox(
+            tableName: 'transactions',
+            recordId:  transactionId,
+            operation: 'create',
+            payload:   {
+                'id': transactionId,
+                'account_id': transaction.accountId,
+                'category_id': transaction.categoryId,
+                'subcategory_id': transaction.subcategoryId,
+                'amount': transaction.amount,
+                'date': transaction.date.toIso8601String(),
+                'transaction_type': transaction.transactionType.name,
+                'note': transaction.note,
+                'is_deleted': false,
+                'updated_at': updatedAt.toIso8601String()
+            }
+        );
     }
 
     /// [PUT]: Update Transaction
     Future<void> update(Transaction transaction) async {
+        final updatedAt = DateTime.now();
+        
         await _db.transactionDao.updateTransaction(TransactionsCompanion(
             id: Value(transaction.id),
             accountId: Value(transaction.accountId),
@@ -273,9 +296,16 @@ class TransactionService {
             date: Value(transaction.date),
             transactionType: Value(transaction.transactionType.name),
             note: Value(transaction.note),
-            updatedAt: Value(DateTime.now()),
+            updatedAt: Value(updatedAt),
             pendingSync: const Value(true),
         ));
+
+        await _syncService.writeToOutbox(
+            tableName: 'transactions',
+            recordId:  transaction.id,
+            operation: 'update',
+            payload:   transaction.toJson()..['updated_at'] = updatedAt.toIso8601String(),
+        );
     }
 
     /// [PUT]: Update Transaction Amount by {categoryId}
@@ -289,17 +319,45 @@ class TransactionService {
         ).get();
 
         for (final row in rows) {
+            final updatedAt = DateTime.now();
+
             await _db.transactionDao.updateTransaction(TransactionsCompanion(
-                id: Value(row.id),
-                amount: Value(row.amount * -1),
-                updatedAt: Value(DateTime.now()),
+                id:          Value(row.id),
+                amount:      Value(row.amount * -1),
+                updatedAt:   Value(updatedAt),
                 pendingSync: const Value(true),
             ));
+
+            // Each inverted transaction needs its own outbox entry
+            await _syncService.writeToOutbox(
+                tableName: 'transactions',
+                recordId:  row.id,
+                operation: 'update',
+                payload: {
+                    'id':               row.id,
+                    'account_id':       row.accountId,
+                    'category_id':      row.categoryId,
+                    'subcategory_id':   row.subcategoryId,
+                    'amount':           row.amount * -1,
+                    'date':             row.date.toIso8601String(),
+                    'transaction_type': row.transactionType,
+                    'note':             row.note,
+                    'is_deleted':       row.isDeleted,
+                    'updated_at':       updatedAt.toIso8601String()
+                }
+            );
         }
     }
 
     /// [DELETE]: Soft delete Transaction by {id}
     Future<void> deleteById(String id) async {
         await _db.transactionDao.softDeleteTransactionById(id);
+
+        await _syncService.writeToOutbox(
+            tableName: 'transactions',
+            recordId:  id,
+            operation: 'delete',
+            payload:   {'id': id, 'updated_at': DateTime.now().toIso8601String()},
+        );
     }
 }
