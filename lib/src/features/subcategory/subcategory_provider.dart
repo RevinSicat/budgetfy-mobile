@@ -4,20 +4,13 @@ import 'subcategory.dart';
 import 'subcategory_service.dart';
 
 final subcategoryServiceProvider = Provider<SubcategoryService>((ref) {
-    final db = ref.watch(localDatabaseProvider);
-    return SubcategoryService(db);
+    return SubcategoryService(ref.watch(localDatabaseProvider));
 });
 
-final subcategoryByCategoryProvider = FutureProvider.family<List<Subcategory>, String>(
-    (ref, categoryId) async {
-        final service = ref.read(subcategoryServiceProvider);
-        return service.getByCategoryId(categoryId);
-    },
-);
+final subcategoryByCategoryProvider = FutureProvider.family<List<Subcategory>, String>((ref, categoryId) async {
+    return ref.read(subcategoryServiceProvider).findByCategoryId(categoryId);
+});
 
-final getSubcategoryCountByCategoryIdProvider = FutureProvider.family<int, String>(
-    (ref, categoryId) async {
-        final service = ref.read(subcategoryServiceProvider);
-        return service.getSubcategoryCountByCategoryId(categoryId);
-    },
-);
+final getSubcategoryCountByCategoryIdProvider = FutureProvider.family<int, String>((ref, categoryId) async {
+    return ref.read(subcategoryServiceProvider).countByCategoryId(categoryId);
+});

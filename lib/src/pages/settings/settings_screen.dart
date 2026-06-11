@@ -168,7 +168,7 @@ class SettingsScreen extends ConsumerWidget {
                     const SizedBox(height: 8),
                     /// [App Versioning]: =========================================================
                     Text(
-                        'Budgetfy v.1.3b\n64c3255',
+                        'Budgetfy v.1.3b stable\n',
                         textAlign: TextAlign.center,
                         style: theme.textTheme.bodySmall
                     )

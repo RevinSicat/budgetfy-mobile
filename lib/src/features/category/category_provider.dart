@@ -4,11 +4,9 @@ import 'category.dart';
 import 'category_service.dart';
 
 final categoryServiceProvider = Provider<CategoryService>((ref) {
-    final db = ref.watch(localDatabaseProvider);
-    return CategoryService(db);
+    return CategoryService(ref.watch(localDatabaseProvider));
 });
 
 final getAllCategoryListProvider = FutureProvider<List<Category>>((ref) async {
-    final service = ref.read(categoryServiceProvider);
-    return service.getAllList();
+    return ref.read(categoryServiceProvider).findAll();
 });

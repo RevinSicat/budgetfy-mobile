@@ -4,11 +4,9 @@ import 'account.dart';
 import 'account_service.dart';
 
 final accountServiceProvider = Provider<AccountService>((ref) {
-    final db = ref.watch(localDatabaseProvider);
-    return AccountService(db);
+    return AccountService(ref.watch(localDatabaseProvider));
 });
 
 final getAllAccountListProvider = FutureProvider<List<Account>>((ref) async {
-    final service = ref.read(accountServiceProvider);
-    return service.getAllList();
+    return ref.read(accountServiceProvider).findAll();
 });

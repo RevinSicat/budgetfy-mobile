@@ -88,7 +88,7 @@ class SyncMeta extends Table {
 
 @DriftDatabase(
     tables: [Accounts, Categories, Subcategories, Transactions, SyncMeta],
-    daos: [AccountDao, CategoryDao, SubcategoryDao, TransactionDao, SyncMetaDao],
+    daos: [AccountDao, CategoryDao, SubcategoryDao, TransactionDao, SyncMetaDao]
 )
 class LocalDatabase extends _$LocalDatabase {
     LocalDatabase() : super(_openConnection());

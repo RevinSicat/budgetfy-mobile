@@ -5,42 +5,63 @@ import 'transaction.dart';
 import 'transaction_service.dart';
 
 final transactionServiceProvider = Provider<TransactionService>((ref) {
-    final db = ref.watch(localDatabaseProvider);
-    return TransactionService(db);
+    return TransactionService(ref.watch(localDatabaseProvider));
 });
 
+// =================================================================================================
+// Transaction Screen — paginated, all-time list
+// =================================================================================================
+
 class TransactionListNotifier extends AutoDisposeAsyncNotifier<List<Transaction>> {
-    int _page = 0;
+    int page = 0;
     bool _hasMore = true;
     bool _isFetchingMore = false;
-    static const int _limit = 20;
+    static const int limit = 20;
 
     @override
     Future<List<Transaction>> build() async {
-        _page = 0;
+        page = 0;
         _hasMore = true;
         _isFetchingMore = false;
-        final service = ref.read(transactionServiceProvider);
-        final result = await service.getAllbyPagination(page: 0, limit: _limit);
-        if (result.length < _limit) _hasMore = false;
+        final result = await ref.read(transactionServiceProvider)
+            .findAllByPage(
+                page: 0, 
+                limit: limit
+            );
+        if (result.length < limit) {
+            _hasMore = false;
+        }
         return result;
     }
 
     Future<void> fetchMore() async {
-        if (!_hasMore || _isFetchingMore) return;
+        if (!_hasMore || _isFetchingMore) {
+            return;
+        }
         final current = state.valueOrNull;
-        if (current == null) return;
+
+        if (current == null) {
+            return;
+        }
 
         _isFetchingMore = true;
-        _page++;
+        page++;
 
         try {
-            final service = ref.read(transactionServiceProvider);
-            final more = await service.getAllbyPagination(page: _page, limit: _limit);
-            if (more.length < _limit) _hasMore = false;
-            state = AsyncData([...current, ...more]);
+            final more = await ref.read(transactionServiceProvider)
+                .findAllByPage(
+                    page: page, 
+                    limit: limit
+                );
+            if (more.length < limit) {
+                _hasMore = false;
+            }
+            state = AsyncData([
+                ...current, 
+                ...more
+            ]);
         } catch (e, st) {
-            _page--;
+            page--;
             state = AsyncError(e, st);
         } finally {
             _isFetchingMore = false;
@@ -56,14 +77,15 @@ final transactionListNotifierProvider = AutoDisposeAsyncNotifierProvider<Transac
 );
 
 final transactionListGroupedProvider = Provider.autoDispose<Map<DateTime, List<Transaction>>>((ref) {
-    final transactionList = ref.watch(transactionListNotifierProvider);
-    return transactionList.maybeWhen(
-        data: (transactions) => _groupByDate(transactions),
+    return ref.watch(transactionListNotifierProvider).maybeWhen(
+        data: (txns) => groupByDate(txns),
         orElse: () => {},
     );
 });
 
-/// Dashboard Transactions (dashboard_screen.dart) — current month only, paginated ================
+// =================================================================================================
+// Dashboard — current-month, paginated
+// =================================================================================================
 
 class DashboardTransactionState {
     final List<Transaction> transactions;
@@ -75,62 +97,62 @@ class DashboardTransactionState {
         this.transactions = const [],
         this.hasMore = true,
         this.isLoadingMore = false,
-        this.page = 0,
+        this.page = 0
     });
 
     DashboardTransactionState copyWith({
         List<Transaction>? transactions,
         bool? hasMore,
         bool? isLoadingMore,
-        int? page,
+        int? page
     }) => DashboardTransactionState(
-        transactions: transactions ?? this.transactions,
-        hasMore: hasMore ?? this.hasMore,
+        transactions:  transactions  ?? this.transactions,
+        hasMore:       hasMore       ?? this.hasMore,
         isLoadingMore: isLoadingMore ?? this.isLoadingMore,
-        page: page ?? this.page,
+        page:          page          ?? this.page,
     );
 }
 
-class DashboardTransactionNotifier
-    extends AutoDisposeAsyncNotifier<DashboardTransactionState> {
-    static const int _limit = 20;
+class DashboardTransactionNotifier extends AutoDisposeAsyncNotifier<DashboardTransactionState> {
+    static const int limit = 20;
 
     @override
     Future<DashboardTransactionState> build() async {
         final now = DateTime.now();
-        final service = ref.read(transactionServiceProvider);
-        final results = await service.getByYearAndMonth(
-            year: now.year,
-            month: now.month,
-            page: 0,
-            limit: _limit,
-        );
+        final results = await ref.read(transactionServiceProvider)
+            .findAllByYearAndMonth(
+                year: now.year, 
+                month: now.month,
+                page: 0, 
+                limit: limit
+            );
         return DashboardTransactionState(
             transactions: results,
-            hasMore: results.length == _limit,
-            page: 0,
+            hasMore: results.length == limit
         );
     }
 
     Future<void> fetchMore() async {
         final current = state.valueOrNull;
-        if (current == null || !current.hasMore || current.isLoadingMore) return;
+        if (current == null || !current.hasMore || current.isLoadingMore) {
+            return;
+        }
 
         state = AsyncData(current.copyWith(isLoadingMore: true));
 
         try {
             final now = DateTime.now();
             final nextPage = current.page + 1;
-            final service = ref.read(transactionServiceProvider);
-            final results = await service.getByYearAndMonth(
-                year: now.year,
-                month: now.month,
-                page: nextPage,
-                limit: _limit,
-            );
+            final results  = await ref.read(transactionServiceProvider)
+                .findAllByYearAndMonth(
+                    year: now.year, 
+                    month: now.month,
+                    page: nextPage, 
+                    limit: limit
+                );
             state = AsyncData(current.copyWith(
                 transactions: [...current.transactions, ...results],
-                hasMore: results.length == _limit,
+                hasMore: results.length == limit,
                 isLoadingMore: false,
                 page: nextPage,
             ));
@@ -145,14 +167,16 @@ final dashboardTransactionNotifierProvider = AutoDisposeAsyncNotifierProvider<Da
 );
 
 final dashboardTransactionGroupedProvider = Provider.autoDispose<Map<DateTime, List<Transaction>>>((ref) {
-    final state = ref.watch(dashboardTransactionNotifierProvider).valueOrNull;
-    if (state == null) return {};
-    return _groupByDate(state.transactions);
+    final s = ref.watch(dashboardTransactionNotifierProvider).valueOrNull;
+    if (s == null) return {};
+    return groupByDate(s.transactions);
 });
 
-/// Shared Helpers ================================================================================
+// =================================================================================================
+// Shared helpers
+// =================================================================================================
 
-Map<DateTime, List<Transaction>> _groupByDate(List<Transaction> transactions) {
+Map<DateTime, List<Transaction>> groupByDate(List<Transaction> transactions) {
     final Map<DateTime, List<Transaction>> grouped = {};
     for (final trn in transactions) {
         final date = DateTime(trn.date.year, trn.date.month, trn.date.day);
@@ -161,7 +185,9 @@ Map<DateTime, List<Transaction>> _groupByDate(List<Transaction> transactions) {
     return grouped;
 }
 
-/// Misc FutureProviders ==========================================================================
+// =================================================================================================
+// Filter parameter objects
+// =================================================================================================
 
 class TransactionFilter {
     final String? accountId;
@@ -178,23 +204,22 @@ class TransactionFilter {
         this.transactionType,
         this.startDate,
         this.endDate,
-        this.page = 0,
-        this.limit = 20,
+        this.page  = 0,
+        this.limit = 20
     });
 }
 
 class MonthYearFilter {
     final int month;
     final int year;
-
-    const MonthYearFilter({required this.month, required this.year});
+    const MonthYearFilter({
+        required this.month, 
+        required this.year
+    });
 
     @override
     bool operator ==(Object other) =>
-        other is MonthYearFilter &&
-        other.month == month &&
-        other.year == year;
-
+        other is MonthYearFilter && other.month == month && other.year == year;
     @override
     int get hashCode => Object.hash(month, year);
 }
@@ -203,11 +228,10 @@ class CategoryMonthFilter {
     final String categoryId;
     final int month;
     final int year;
-
     const CategoryMonthFilter({
         required this.categoryId,
         required this.month,
-        required this.year,
+        required this.year
     });
 
     @override
@@ -216,51 +240,49 @@ class CategoryMonthFilter {
         other.categoryId == categoryId &&
         other.month == month &&
         other.year == year;
-
     @override
     int get hashCode => Object.hash(categoryId, month, year);
 }
 
+// =================================================================================================
+// FutureProviders
+// =================================================================================================
+
 final getAllTransactionByPaginationProvider = FutureProvider.family<List<Transaction>, TransactionFilter>((ref, filter) async {
-    final service = ref.read(transactionServiceProvider);
-    return service.getAllbyPagination(page: filter.page, limit: filter.limit);
+    return ref.read(transactionServiceProvider)
+        .findAllByPage(
+            page: filter.page, 
+            limit: filter.limit
+        );
 });
-
 final getCategoryAmountSumByMonthAndYearProvider = FutureProvider.autoDispose.family<List<CategoryChartData>, MonthYearFilter>((ref, filter) async {
-    final service = ref.read(transactionServiceProvider);
-    return service.getCategoryAmountSumByMonthAndYear(
-        month: filter.month,
-        year: filter.year,
-    );
+    return ref.read(transactionServiceProvider)
+        .getCategoryAmountSumByMonthAndYear(
+            month: filter.month, 
+            year: filter.year
+        );
 });
-
 final getTransactionsByCategoryAndMonthProvider = FutureProvider.autoDispose.family<List<Transaction>, CategoryMonthFilter>((ref, filter) async {
-    final service = ref.read(transactionServiceProvider);
-    return service.getByCategoryAndMonth(
+    return ref.read(transactionServiceProvider).findByCategoryAndMonth(
         categoryId: filter.categoryId,
         month: filter.month,
-        year: filter.year,
+        year: filter.year
     );
 });
-
 final getTransactionByIdProvider = FutureProvider.family<Transaction, String>((ref, id) async {
-    final service = ref.read(transactionServiceProvider);
-    final result = await service.getById(id);
+    final result = await ref.read(transactionServiceProvider).findById(id);
     if (result == null) throw Exception('Transaction not found: $id');
     return result;
 });
-
 final getTotalTransactionAmmountByAccountIdProvider = FutureProvider.family<double, String>((ref, accountId) async {
-    final service = ref.read(transactionServiceProvider);
-    return service.getAmountSumByAccountId(accountId);
+    return ref.read(transactionServiceProvider)
+        .sumAmountByAccountId(accountId);
 });
-
 final getTransactionAmmountSumByCategoryIdProvider = FutureProvider.family<double, String>((ref, categoryId) async {
-    final service = ref.read(transactionServiceProvider);
-    return service.getAmountSumByCategoryId(categoryId);
+    return ref.read(transactionServiceProvider)
+        .sumAmountByCategoryId(categoryId);
 });
-
 final getTransactionNetTotalsProvider = FutureProvider.autoDispose<Map<String, double>>((ref) async {
-    final service = ref.read(transactionServiceProvider);
-    return service.getNetTotals();
+    return ref.read(transactionServiceProvider)
+        .getNetTotals();
 });
