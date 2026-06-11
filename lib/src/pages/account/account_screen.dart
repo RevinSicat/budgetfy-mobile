@@ -11,16 +11,22 @@ class AccountScreen extends ConsumerWidget {
     Widget build(BuildContext context, WidgetRef ref) {
         final theme = Theme.of(context);
         final accountList = ref.watch(getAllAccountListProvider);
+        final screenW = MediaQuery.of(context).size.width;
+        final columns = screenW < 480 ? 1.25 : (screenW < 840 ? 2 : 3);
+        const spacing = 20.0;
+        const padding = 16.0;
+        final cardW = (screenW - padding * 2 - spacing * (columns - 1)) / columns;
+        final cardH = cardW / 1.7;
 
         return Scaffold(
-            /// [Account Header]: =================================================================
-            appBar: AppBar(title: Text(
-                'Accounts',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.bold
+            appBar: AppBar(
+                title: Text(
+                    'Accounts',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold
+                    )
                 )
-            )),
-            /// [Account Cards List]: =============================================================
+            ),
             body: accountList.when(
                 data: (accounts) {
                     if (accounts.isEmpty) {
@@ -30,13 +36,23 @@ class AccountScreen extends ConsumerWidget {
                     }
 
                     return SingleChildScrollView(
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.all(padding),
                         child: Wrap(
-                            spacing: 12,
-                            runSpacing: 12,
+                            spacing: spacing,
+                            runSpacing: spacing,
                             children: [
-                                ...accounts.map((acc) => AccountCard(account: acc)),
-                                AddAccountCard()
+                                ...accounts.map(
+                                    (acc) => SizedBox(
+                                        width:  cardW,
+                                        height: cardH,
+                                        child:  AccountCard(account: acc)
+                                    )
+                                ),
+                                SizedBox(
+                                    width: cardW,
+                                    height: cardH,
+                                    child: const AddAccountCard()
+                                )
                             ]
                         )
                     );

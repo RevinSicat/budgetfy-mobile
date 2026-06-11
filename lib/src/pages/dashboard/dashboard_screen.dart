@@ -34,8 +34,7 @@ class DashboardScreenState extends ConsumerState<DashboardScreen> {
 
     void _onScroll() {
         final position = scrollController.position;
-        final isNearBottom = position.pixels >= position.maxScrollExtent - 300;
-        if (isNearBottom) {
+        if (position.pixels >= position.maxScrollExtent - 300) {
             ref.read(dashboardTransactionNotifierProvider.notifier).fetchMore();
         }
     }
@@ -46,6 +45,9 @@ class DashboardScreenState extends ConsumerState<DashboardScreen> {
         final accountList = ref.watch(getAllAccountListProvider);
         final transactionList = ref.watch(dashboardTransactionNotifierProvider);
         final transactionListGrouped = ref.watch(dashboardTransactionGroupedProvider);
+        final screenH = MediaQuery.of(context).size.height;
+        final cardH = (screenH * 0.16).clamp(110.0, 160.0);
+        final cardW = cardH * 1.7;
 
         return Scaffold(
             body: SafeArea(
@@ -74,29 +76,51 @@ class DashboardScreenState extends ConsumerState<DashboardScreen> {
                                     )
                                 )
                             ),
-                            /* ===================================================================
-                            Account Card List
-                            =================================================================== */
                             const SizedBox(height: 8),
                             SizedBox(
-                                height: 120,
+                                height: cardH,
                                 child: accountList.when(
                                     data: (accounts) => ListView(
                                         scrollDirection: Axis.horizontal,
                                         padding: const EdgeInsets.only(left: 16),
+                                        
                                         children: [
-                                            ...accounts.map((acc) => AccountCard(account: acc)),
-                                            const AddAccountCard()
+                                            ...accounts.map(
+                                                (acc) => Padding(
+                                                    padding: const EdgeInsets.only(right: 12),
+                                                    child: SizedBox(
+                                                        width:  cardW,
+                                                        height: cardH,
+                                                        child:  AccountCard(account: acc)
+                                                    )
+                                                )
+                                            ),
+                                            SizedBox(
+                                                width:  cardW * 0.6,
+                                                height: cardH,
+                                                child:  const AddAccountCard()
+                                            )
                                         ]
                                     ),
-                                    loading: () => const Center(child: CircularProgressIndicator()),
+                                    loading: () => const Center(
+                                        child: CircularProgressIndicator()
+                                    ),
                                     error: (e, _) => Center(child: Text('Error: $e'))
+                                )
+                            ),
+                            const SizedBox(height: 12),
+                            Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8),
+                                child: Divider(
+                                    height: 24,
+                                    thickness: 1,
+                                    color: theme.dividerColor.withOpacity(0.2)
                                 )
                             ),
                             /* ===================================================================
                             Transactions Header
                             =================================================================== */
-                            const SizedBox(height: 24),
+                            const SizedBox(height: 12),
                             Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 16),
                                 child: Text(
@@ -115,19 +139,23 @@ class DashboardScreenState extends ConsumerState<DashboardScreen> {
                                     if (transactionListGrouped.isEmpty) {
                                         return const Padding(
                                             padding: EdgeInsets.all(32),
-                                            child: Center(child: Text('No Transactions Found')),
+                                            child: Center(
+                                                child: Text('No Transactions Found')
+                                            )
                                         );
                                     }
                                     return Column(
-                                        children: transactionListGrouped.entries.map((entry) {
-                                            return TransactionGroupSection(
-                                                date: entry.key,
-                                                transactions: entry.value,
-                                            );
-                                        }).toList()
+                                        children: transactionListGrouped.entries
+                                            .map((entry) => TransactionGroupSection(
+                                                date:         entry.key,
+                                                transactions: entry.value
+                                            ))
+                                            .toList()
                                     );
                                 },
-                                loading: () => const Center(child: CircularProgressIndicator()),
+                                loading: () => const Center(
+                                    child: CircularProgressIndicator()
+                                ),
                                 error: (e, _) => Center(child: Text('Error: $e'))
                             ),
                             /* ===================================================================
@@ -137,7 +165,9 @@ class DashboardScreenState extends ConsumerState<DashboardScreen> {
                                 transactionList.value!.isLoadingMore
                                     ? const Padding(
                                         padding: EdgeInsets.all(16),
-                                        child: Center(child: CircularProgressIndicator())
+                                        child: Center(
+                                            child: CircularProgressIndicator()
+                                        )
                                     )
                                     : !transactionList.value!.hasMore
                                         ? const Padding(
@@ -150,7 +180,6 @@ class DashboardScreenState extends ConsumerState<DashboardScreen> {
                                             )
                                         )
                                         : const SizedBox.shrink(),
-
                             Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 8),
                                 child: Divider(
@@ -217,16 +246,14 @@ class DashboardScreenState extends ConsumerState<DashboardScreen> {
             ),
             /// [Add Transaction Button]: =========================================================
             floatingActionButton: FloatingActionButton(
-                onPressed: () {
-                    showModalBottomSheet(
-                        context: context,
-                        isScrollControlled: true,
-                        shape: const RoundedRectangleBorder(
-                            borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                        ),
-                        builder: (_) => const TransactionForm()
-                    );
-                },
+                onPressed: () => showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(16))
+                    ),
+                    builder: (_) => const TransactionForm()
+                ),
                 child: const Icon(Icons.add)
             )
         );
