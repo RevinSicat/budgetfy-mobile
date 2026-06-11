@@ -1,4 +1,3 @@
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 import '../../core/local/local_database.dart';
