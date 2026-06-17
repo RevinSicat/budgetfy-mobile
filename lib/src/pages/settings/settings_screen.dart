@@ -6,7 +6,7 @@ import 'package:restart_app/restart_app.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/theme/design_tokens.dart';
 import '../../core/theme/theme_provider.dart';
-import '../../features/transaction/transaction_provider.dart';
+import '../summary/summary_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
     const SettingsScreen({super.key});
@@ -52,11 +52,39 @@ class SettingsScreen extends ConsumerWidget {
                 children: [
                     // ── Appearance ──────────────────────────────────────────
                     SectionLabel('Appearance'),
-                    ThemePicker(current: currentTheme),
-
-                    // ── Overview ────────────────────────────────────────────
-                    SectionLabel('Overview'),
-                    SummaryCard(),
+                    Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+                        child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                                Row(
+                                    children: [
+                                        Container(
+                                        width: 40, height: 40,
+                                            decoration: BoxDecoration(
+                                                color: theme.colorScheme.primary.withOpacity(0.1),
+                                                borderRadius: BorderRadius.circular(AppRadius.md)
+                                            ),
+                                            child: Icon(
+                                                Icons.palette_outlined,
+                                                size: 22,
+                                                color: theme.colorScheme.primary
+                                            )
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Text(
+                                            'Theme',
+                                            style: theme.textTheme.bodyLarge?.copyWith(
+                                                fontSize:   AppFontSize.body,
+                                                fontWeight: FontWeight.w600
+                                            )
+                                        ),
+                                    ]
+                                ),
+                                ThemeSection(current: currentTheme)
+                            ]
+                        )
+                    ),
 
                     // ── Data ────────────────────────────────────────────────
                     SectionLabel('Data'),
@@ -119,6 +147,23 @@ class SettingsScreen extends ConsumerWidget {
                         }
                     ),
 
+                    // ── Overview ────────────────────────────────────────────
+                    SectionLabel('Overview'),
+                    SettingsTile(
+                        iconData: Icons.query_stats,
+                        iconColor: theme.colorScheme.primary,
+                        title: 'Summary',
+                        subtitle: 'View net totals and category breakdown',
+                        onTap: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const SummaryScreen(),
+                                ),
+                            );
+                        }
+                    ),
+
                     const SizedBox(height: 32),
                     Text(
                         'Budgetfy v1.3b · 64c3255',
@@ -159,11 +204,11 @@ class SectionLabel extends StatelessWidget {
 }
 
 // =================================================================================================
-// Theme picker — segmented pill row
+// Theme dropdown
 // =================================================================================================
-class ThemePicker extends ConsumerWidget {
+class ThemeSection extends ConsumerWidget {
     final AppThemeMode current;
-    const ThemePicker({required this.current});
+    const ThemeSection({required this.current});
 
     static const _modes = [
         (AppThemeMode.light, 'Light', Icons.light_mode),
@@ -176,262 +221,54 @@ class ThemePicker extends ConsumerWidget {
         final theme = Theme.of(context);
 
         return Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-                children: _modes.map((entry) {
-                    final (mode, label, icon) = entry;
-                    final isActive = current == mode;
-                    final color = theme.colorScheme.primary;
-
-                    return Expanded(
-                        child: GestureDetector(
-                            onTap: () => ref.read(themeProvider.notifier).setTheme(mode),
-                            child: AnimatedContainer(
-                                duration: const Duration(milliseconds: 180),
-                                margin: EdgeInsets.only(
-                                    right: entry == _modes.last ? 0 : 8
-                                ),
-                                padding: const EdgeInsets.symmetric(
-                                    vertical: 10, horizontal: 8
-                                ),
-                                decoration: BoxDecoration(
-                                    color: isActive
-                                        ? color.withOpacity(0.1)
-                                        : theme.cardTheme.color,
-                                    borderRadius: BorderRadius.circular(AppRadius.md),
-                                    border: Border.all(
-                                        color: isActive
-                                            ? color
-                                            : theme.dividerColor,
-                                        width: isActive ? 2 : 0.5
-                                    )
-                                ),
-                                child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                        Icon(
-                                            icon,
-                                            size: 22,
-                                            color: isActive
-                                                ? color
-                                                : theme.colorScheme.onSurface.withOpacity(0.5)
-                                        ),
-                                        const SizedBox(height: 6),
-                                        Text(
-                                            label,
-                                            style: TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: isActive
-                                                    ? FontWeight.w600
-                                                    : FontWeight.normal,
-                                                color: isActive
-                                                    ? color
-                                                    : theme.colorScheme.onSurface.withOpacity(0.5)
-                                            )
-                                        )
-                                    ]
-                                )
-                            )
-                        )
-                    );
-                }).toList()
-            )
-        );
-    }
-}
-
-// =================================================================================================
-// Summary card — tappable, shows live net totals
-// =================================================================================================
-
-class SummaryCard extends ConsumerWidget {
-    const SummaryCard();
-
-    @override
-    Widget build(BuildContext context, WidgetRef ref) {
-        final theme = Theme.of(context);
-        final netTotals = ref.watch(getTransactionNetTotalsProvider);
-        final primary = theme.colorScheme.primary;
-
-        return GestureDetector(
-            onTap: () {
-                // TODO: navigate to full summary / analytics screen
-            },
-            child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                    color: theme.cardTheme.color,
-                    borderRadius: BorderRadius.circular(AppRadius.lg),
-                    border: Border.all(
-                        color: theme.dividerColor,
-                        width: 0.5
-                    )
-                ),
-                child: Column(
-                    children: [
-                        // ── Header row ───────────────────────────────────────
-                        Padding(
-                            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            decoration: BoxDecoration(
+                border: Border.all(color: theme.colorScheme.primary),
+                borderRadius: BorderRadius.circular(AppRadius.md)
+            ),
+            child: DropdownButtonHideUnderline(
+                child: DropdownButton<AppThemeMode>(
+                    value: current,
+                    isDense: true,
+                    icon: const Padding(
+                        padding: EdgeInsets.only(left: 4),
+                        child: Icon(Icons.expand_more, size: 18)
+                    ),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                        fontSize: AppFontSize.label,
+                        fontWeight: AppFontWeight.semiBold,
+                        color: theme.colorScheme.onSurface
+                    ),
+                    selectedItemBuilder: (context) => _modes.map((entry) {
+                        final (_, label, icon) = entry;
+                        return Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                                Icon(icon, size: 16, color: theme.colorScheme.primary),
+                                const SizedBox(width: 6),
+                                Text(label)
+                            ]
+                        );
+                    }).toList(),
+                    items: _modes.map((entry) {
+                        final (mode, label, icon) = entry;
+                        return DropdownMenuItem(
+                            value: mode,
                             child: Row(
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                    Container(
-                                        width: 40, height: 40,
-                                        decoration: BoxDecoration(
-                                            color: primary.withOpacity(0.1),
-                                            borderRadius: BorderRadius.circular(AppRadius.md)
-                                        ),
-                                        child: Icon(
-                                            Icons.pie_chart,
-                                            size: 22,
-                                            color: primary
-                                        )
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                        child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                                Text(
-                                                    'Financial Summary',
-                                                    style: theme.textTheme.bodyLarge?.copyWith(
-                                                        fontWeight: FontWeight.w600
-                                                    )
-                                                ),
-                                                Text(
-                                                    'All-time totals across accounts',
-                                                    style: theme.textTheme.bodyMedium?.copyWith(
-                                                        fontSize: AppFontSize.label
-                                                    )
-                                                )
-                                            ]
-                                        )
-                                    ),
-                                    Icon(
-                                        Icons.chevron_right,
-                                        size: 20,
-                                        color: theme.colorScheme.onSurface.withOpacity(0.4)
-                                    )
+                                    Icon(icon, size: 18),
+                                    const SizedBox(width: 10),
+                                    Text(label)
                                 ]
                             )
-                        ),
-                        // ── Stats row ────────────────────────────────────────
-                        Divider(
-                            height: 0,
-                            thickness: 0.5,
-                            color: theme.dividerColor
-                        ),
-                        netTotals.when(
-                            loading: () => const Padding(
-                                padding: EdgeInsets.all(16),
-                                child: Center(
-                                    child: SizedBox(
-                                        width: 20, 
-                                        height: 20,
-                                        child: CircularProgressIndicator(strokeWidth: 2)
-                                    )
-                                )
-                            ),
-                            error: (e, _) => Padding(
-                                padding: const EdgeInsets.all(12),
-                                child: Text(
-                                    'Could not load totals',
-                                    style: theme.textTheme.bodyMedium
-                                )
-                            ),
-                            data: (totals) {
-                                final income = totals['net_income']  ?? 0.0;
-                                final expense = totals['net_expense'] ?? 0.0;
-                                final worth = totals['net_worth']   ?? 0.0;
-
-                                return IntrinsicHeight(
-                                    child: Row(
-                                        children: [
-                                            _StatCell(
-                                                label: 'Income',
-                                                value: '₱${_compact(income)}',
-                                                valueColor: Colors.green
-                                            ),
-                                            VerticalDivider(
-                                                width: 0.5,
-                                                thickness: 0.5,
-                                                color: theme.dividerColor
-                                            ),
-                                            _StatCell(
-                                                label: 'Expenses',
-                                                value: '₱${_compact(expense)}',
-                                                valueColor: Colors.red
-                                            ),
-                                            VerticalDivider(
-                                                width: 0.5,
-                                                thickness: 0.5,
-                                                color: theme.dividerColor
-                                            ),
-                                            _StatCell(
-                                                label: 'Net Worth',
-                                                value: '₱${_compact(worth)}',
-                                                valueColor: worth >= 0
-                                                    ? Colors.green
-                                                    : Colors.red
-                                            )
-                                        ]
-                                    )
-                                );
-                            }
-                        )
-                    ]
-                )
-            )
-        );
-    }
-    String _compact(double value) {
-        if (value.abs() >= 1000000) {
-            return '${(value / 1000000).toStringAsFixed(1)}M';
-        }
-        if (value.abs() >= 1000) {
-            return '${(value / 1000).toStringAsFixed(1)}K';
-        }
-        return value.toStringAsFixed(2);
-    }
-}
-
-class _StatCell extends StatelessWidget {
-    final String label;
-    final String value;
-    final Color  valueColor;
-    const _StatCell({
-        required this.label,
-        required this.value,
-        required this.valueColor
-    });
-
-    @override
-    Widget build(BuildContext context) {
-        final theme = Theme.of(context);
-        return Expanded(
-            child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    vertical: 10, 
-                    horizontal: 12
-                ),
-                child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                        Text(
-                            value,
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                fontSize:   AppFontSize.body,
-                                color:      valueColor
-                            )
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                            label,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                                fontSize: AppFontSize.caption
-                            )
-                        )
-                    ]
+                        );
+                    }).toList(),
+                    onChanged: (mode) {
+                        if (mode != null) {
+                            ref.read(themeProvider.notifier).setTheme(mode);
+                        }
+                    }
                 )
             )
         );
@@ -474,7 +311,13 @@ class SettingsTile extends StatelessWidget {
                 ),
                 child: Icon(iconData, size: 18, color: iconColor)
             ),
-            title: Text(title),
+            title: Text(
+                title,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                    fontSize:   AppFontSize.body,
+                    fontWeight: FontWeight.w600
+                )
+            ),
             subtitle: Text(
                 subtitle,
                 style: theme.textTheme.bodySmall?.copyWith(
